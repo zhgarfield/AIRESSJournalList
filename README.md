@@ -1,7 +1,6 @@
 AIRESS Behavioral Science Journal Analysis
 ================
 
-# AIRESS Behavioral Science Journal Analysis
 
 **Author:** Zachary H. Garfield  
 **Institution:** UM6P – AIRESS  
