@@ -3,11 +3,11 @@ title: "AIRESS Behavioral Science Journal Analysis"
 author: "Pr. Zachary Garfield"
 date: "`r Sys.Date()`"
 output:
-  html_document:
+  bookdown::html_document2:
     toc: true
     toc_depth: 3
     toc_float: true
-    number_sections: true
+    number_sections: false
 ---
 
 ```{r setup, include=FALSE, echo=FALSE, message=FALSE}
@@ -63,7 +63,7 @@ We then ensured that the three core bibliometric indicators (CiteScore, SNIP, SJ
 
 Our goal was to create a unified, transparent measure of journal impact. Because the three citation metrics provided by Scopus (CiteScore, SNIP, SJR) are correlated, measured on different scales, and do not contribute equally to perceived journal quality, we used Principal Component Analysis (PCA) to extract the shared underlying dimension. This first principal component (PC1) captures the dominant pattern of variation across the three metrics.
 
-Figure @ref(fig:pca-loadings) visualizes the standardized loadings of the three citation metrics on each principal component. PC1 accounts for 88.1% of the total variance, with CiteScore, SNIP, and SJR all loading strongly and positively on this component. This demonstrates that the three metrics capture the same underlying construct—overall journal influence—and that PC1 serves as a coherent, data-driven summary of impact.
+Figure \@ref(fig:pca-loadings) visualizes the standardized loadings of the three citation metrics on each principal component. PC1 accounts for 88.1% of the total variance, with CiteScore, SNIP, and SJR all loading strongly and positively on this component. This demonstrates that the three metrics capture the same underlying construct—overall journal influence—and that PC1 serves as a coherent, data-driven summary of impact.
 
 By contrast, PC2 (8.5%) and PC3 (3.4%) explain only small residual patterns that do not map onto interpretable dimensions of journal quality. Because they reflect noise or minor idiosyncrasies rather than meaningful variation in impact, we do not use PC2 or PC3 in the construction of the Impact Index. All subsequent analyses rely solely on PC1, the dominant and substantively interpretable dimension.
 
@@ -101,7 +101,7 @@ This process produces a clean, data-driven tier structure:
 
 As shown in Figure @ref(fig:tierplot), the tiering system produces a clear stratification of journal impact. Most journals cluster in the lower range of the Impact Index, while progressively fewer appear in the mid- and high-impact tiers. This distribution illustrates how the three citation metrics combine to form a coherent hierarchy of journal influence across the behavioral sciences.
 
-```{r tierplot, fig.cap=Journals are grouped into three data-driven tiers (A: Excellent, B: Preferred, C: Acceptable) based on k-means clustering of the Impact Index, a 0–100 score derived from the first principal component of CiteScore, SNIP, and SJR. The distribution shows that most journals fall into the lower-impact tier, while progressively fewer occupy the mid- and high-impact ranges. This reflects the natural stratification of scholarly influence across the behavioral and social sciences."}
+```{r tierplot, fig.cap= "Journals are grouped into three data-driven tiers (A: Excellent, B: Preferred, C: Acceptable) based on k-means clustering of the Impact Index, a 0–100 score derived from the first principal component of CiteScore, SNIP, and SJR. The distribution shows that most journals fall into the lower-impact tier, while progressively fewer occupy the mid- and high-impact ranges. This reflects the natural stratification of scholarly influence across the behavioral and social sciences."}
 tier_plot
 ```
 
