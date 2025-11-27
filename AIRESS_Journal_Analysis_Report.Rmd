@@ -1,0 +1,114 @@
+---
+title: "AIRESS Behavioral Science Journal Analysis"
+author: "Pr. Zachary Garfield"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source("processing.R")
+```
+
+# Introduction
+
+The goal of this project is to build a transparent, evidence-based classification of academic journals relevant to the interdisciplinary Behavioral Sciences at AIRESS and UM6P. Faculty and students routinely make decisions about where to publish, which journals to prioritize, and how to interpret publication records. Yet journal quality is uneven across fields, and intuitive judgments are often inconsistent or influenced by disciplinary silos. This report therefore develops a principled, reproducible tiering system that can guide departmental decision-making, mentorship, and research strategy.
+
+We begin by assembling and cleaning a curated set of Scopus journal lists across subject areas aligned with behavioral science—including psychology, anthropology, decision sciences, demography, social sciences, and related domains. We harmonize these datasets, merge overlapping titles, and create a subject-area membership matrix to reflect the interdisciplinary nature of the field.
+
+To assess journal impact in a unified way, we conduct a Principal Component Analysis (PCA) on three widely used bibliometric indicators (CiteScore, SNIP, SJR). PCA extracts the shared underlying signal among these metrics, producing a single latent “impact” dimension (PC1). This avoids overweighting any one citation measure and provides an interpretable, data-driven summary of journal standing. To improve interpretability and avoid distortions from extremely low‐impact or marginal journals, we also remove the bottom 25% of titles based on their PC1 scores. These journals contribute little to the structure of the behavioral science landscape and would otherwise compress the scale, making it harder to distinguish meaningful differences among mid- and high-tier outlets. Filtering at this stage ensures that the resulting impact index and tiering system reflect the journals most relevant to our research and teaching missions.
+
+We then convert the latent impact score into an intuitive 0–100 “impact index” and implement a tiering procedure that combines minimal rule-based filtering with k-means clustering. The final system classifies journals into three categories—A (Excellent), B (Preferred), C (Acceptable)—offering a clear and defensible framework for evaluating journals across the behavioral sciences.
+
+
+# Data Sources
+
+Scopus is the most comprehensive and widely used bibliometric database in the behavioral and social sciences. To capture the breadth of scholarship represented at AIRESS, we assembled a curated set of Scopus subject categories most relevant to interdisciplinary behavioral science. In total, `r length(unique(data$subject_area))` subject areas were included:
+
+* Decision Sciences (Miscellaneous)
+* General Decision Sciences
+* Psychology (Miscellaneous)
+* Demography
+* Experimental and Cognitive Psychology
+* History and Philosophy of Science
+* General Psychology
+* Applied Psychology
+* Social Psychology
+* Health (Social Science)
+* Developmental and Educational Psychology
+* Anthropology
+* Social Sciences (Miscellaneous)
+* Cultural Studies
+* Sociology and Political Science
+* Multidisciplinary
+
+For each subject area, a Scopus Source List (Excel format) was downloaded containing all journals in the field along with their bibliometric indicators: CiteScore, SNIP (Source Normalized Impact per Paper), SJR (SCImago Journal Rank), publisher information, and metadata. Only journal sources were included, and only those ranked in the first or second Scopus quartile (Q1–Q2). Two journals—MMWR Surveillance Summaries and MMWR Recommendations and Reports—were removed at the outset. Although highly cited, they are epidemiological policy outlets with little relevance for behavioral science publishing and would distort the PCA.
+
+Next, we ensured that the three core citation metrics (CiteScore, SNIP, SJR) were correctly coerced to numeric format and removed all journals with missing values for any of these measures. This guarantees that the subsequent PCA is performed on complete, comparable citation information.
+
+All data correspond to the 2024 Scopus source lists. Only the subject categories directly aligned with behavioral science research and training at AIRESS were included in the analysis.
+
+# Data Import and Preparation
+
+Each Scopus subject file was imported, assigned a subject-area label extracted from the filename, and merged into a single dataset. Because many journals appear in multiple Scopus classifications, duplicate entries were identified and removed. After cleaning and deduplication, the dataset contains `r dim(journal_metadata)[1]` unique journals across all selected subject areas.
+
+We then ensured that the three core bibliometric indicators (CiteScore, SNIP, SJR) were represented as numeric variables. Any journals with missing values for these metrics were excluded to guarantee a complete and consistent basis for subsequent PCA and clustering analyses.
+
+# PCA and Construction of the Impact Index
+
+Our goal was to create a unified, transparent measure of journal impact. Because the three citation metrics provided by Scopus (CiteScore, SNIP, SJR) are correlated, measured on different scales, and do not contribute equally to perceived journal quality, we used Principal Component Analysis (PCA) to extract the shared underlying dimension. This first principal component (PC1) captures the dominant pattern of variation across the three metrics.
+
+Figure @ref(fig:pca-loadings) visualizes the standardized loadings of the three citation metrics on each principal component. PC1 accounts for 88.1% of the total variance, with CiteScore, SNIP, and SJR all loading strongly and positively on this component. This demonstrates that the three metrics capture the same underlying construct—overall journal influence—and that PC1 serves as a coherent, data-driven summary of impact.
+
+By contrast, PC2 (8.5%) and PC3 (3.4%) explain only small residual patterns that do not map onto interpretable dimensions of journal quality. Because they reflect noise or minor idiosyncrasies rather than meaningful variation in impact, we do not use PC2 or PC3 in the construction of the Impact Index. All subsequent analyses rely solely on PC1, the dominant and substantively interpretable dimension.
+
+```{r pca-loadings, fig.cap="PC1 (88.1% of the variance) reflects a unified underlying impact dimension, with all three metrics contributing strongly and in the same direction. This confirms that CiteScore, SNIP, and SJR measure the same latent construct—general journal influence and visibility. PC2 (8.5%) and PC3 (3.4%) capture only minor residual structure, indicating that nearly all meaningful information about journal impact is contained in PC1."}
+pc1_loadings_plot
+```
+
+All three citation metrics load strongly and in the same direction on PC1, indicating that they reflect a common latent construct: overall journal influence, visibility, and citation performance. Because PCA axes have no intrinsic orientation, we aligned PC1 so that higher PC1 values correspond to higher CiteScore, ensuring interpretability. We then examined the distribution of PC1 scores across all journals. As expected, the distribution is highly right-skewed: most journals have modest citation profiles, while a smaller number of journals occupy a much higher-impact tail.
+
+To avoid distorting subsequent clustering and tiering by including very low-impact journals that form a distinct bottom group, we removed journals in the lowest quartile of the PC1 distribution. These outlets contribute little information for distinguishing meaningful tiers and tend to cluster separately from the journals our faculty or students are likely to target. This resulsted in a reduced data set of `r dim(df_wide)[1]` unique journals.
+
+Next, we rescaled PC1 to a 0–100 Impact Index, where $0$ represents the lowest-impact journals in our curated dataset, $100$ represents the highest-impact journals, and Intermediate values reflect proportional standing along the latent impact dimension. The distribution of the Impact Index, shown in Figure @ref(fig:index-hist), reveals a strongly right-skewed pattern (mean = `r round(mean(df_final$impact_index), 2)`, SD = `r round(sd(df_final$impact_index), 2)`). Most journals cluster at the lower end of the index, while a small number extend into the high-impact range. This asymmetry reflects the well-known structure of citation metrics, where influence is heavily concentrated among a limited set of top journals.
+
+```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence."}
+index_hist
+```
+
+This transformation produces an intuitive, interpretable measure that preserves the rank ordering and relative spacing of journals while placing them on a standardized and easily comparable scale.
+
+# K-Means Clustering and Construction of the Tier System
+
+After filtering out the lowest-impact quartile of journals and creating a standardized 0–100 Impact Index, the next step was to translate the continuous impact scale into a practical, categorical tiering system usable by faculty, students, and administrators. Our aim was to identify natural groupings in the distribution of journal impact, rather than rely on arbitrary numeric cutoffs. For this reason, we applied K-means clustering, a widely used unsupervised learning method that partitions observations into groups based on similarity.
+
+We applied K-means clustering to the Impact Index of the remaining journals, specifying three clusters, corresponding to the three tiers we wished to identify: A: Excellent, B: Preferred, C: Acceptable
+
+K-means assigns each journal to a cluster with a centroid (mean Impact Index) representing the typical impact level of that group. Because K-means clusters are unordered, we then sorted the clusters by the mean Impact Index and labeled them accordingly: the highest-mean cluster became Tier A, the next Tier B, and the lowest Tier C.
+
+This process produces a clean, data-driven tier structure:
+
+* Tier A (Excellent): Represents the highest-impact and most influential journals in our dataset. These outlets tend to have high citation rates, strong international visibility, and are widely recognized as leaders in their fields.
+
+* Tier B (Preferred): Journals with solid and reliable impact profiles. These outlets are respected within the behavioral sciences and are competitive choices for faculty and students aiming for strong publication outcomes.
+
+* Tier C (Acceptable): Journals with modest but legitimate impact. These may serve as reasonable venues for early-stage researchers, specialized topics, or methodological contributions, while still maintaining quality and credibility.
+
+As shown in Figure @ref(fig:tierplot), the tiering system produces a clear stratification of journal impact. Most journals cluster in the lower range of the Impact Index, while progressively fewer appear in the mid- and high-impact tiers. This distribution illustrates how the three citation metrics combine to form a coherent hierarchy of journal influence across the behavioral sciences.
+
+```{r tierplot, fig.cap=Journals are grouped into three data-driven tiers (A: Excellent, B: Preferred, C: Acceptable) based on k-means clustering of the Impact Index, a 0–100 score derived from the first principal component of CiteScore, SNIP, and SJR. The distribution shows that most journals fall into the lower-impact tier, while progressively fewer occupy the mid- and high-impact ranges. This reflects the natural stratification of scholarly influence across the behavioral and social sciences."}
+tier_plot
+```
+
+# Conclusion 
+The combination of PCA-derived Impact Index and K-means clustering ensures that tiers reflect real structure in the data, rather than subjective impressions. It also ensures that small numerical differences do not artificially separate journals into different categories—cluster boundaries form only where the data exhibit natural separation.
+
+The result is a reproducible, principled, and transparent tiering system that can be updated annually as citation metrics change or new journals are added.
+
+# Appendix
+

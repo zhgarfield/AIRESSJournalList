@@ -1,0 +1,30 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+.Rproj
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio files
+*.Rproj.user/
+*.Rhistory
+*.RData
+*.Rproj
+.Rproj.user/
+
+# OS junk
+.DS_Store
+
+# Generated outputs
+*.html
+*.pdf
+*.png
+*.jpeg
+
+# Cache folders
+_cache/
+*_cache/
