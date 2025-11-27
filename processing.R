@@ -292,4 +292,23 @@ tier_plot <- ggplot(df_final, aes(x = impact_index, fill = tier)) +
 tier_plot
 
 
+# Save final journal tier list as CSV
+
+
+final_export <- df_wide %>%
+  select(
+    `Source title`,
+    CiteScore,
+    SNIP,
+    SJR,
+    PC1_score,
+    impact_index,
+    tier
+  ) %>%
+  arrange(desc(impact_index))
+
+write_csv(final_export, "AIRESS_Journal_Tiers.csv")
+
+message("Saved: AIRESS_Journal_Tiers.csv")
+
 
