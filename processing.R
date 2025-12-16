@@ -129,148 +129,282 @@ df_wide <- journal_metadata %>%
   left_join(subject_matrix, by = "Source title") %>%
   distinct()
 
-# Conduct PCA -------------------------------------------------------------
-# Run PCA on the three standardized metrics
-pca_model <- prcomp(
-  df_wide[, pca_vars],
-  center = TRUE,
-  scale. = TRUE
+
+# Subcategory mapping ------------------------------------------------------
+
+subcategory_map <- list(
+  DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
+  Psychology = c(
+    "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
+    "ExperimentalandCognitivePsychology", "SocialPsychology",
+    "DevelopmentalandEducationalPsychology"
+  ),
+  Anthropology = c("Anthropology", "CulturalStudies"),
+  Demography = c("Demography"),
+  Sociology = c("SociologyandPoliticalScience"),
+  PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
+  AppliedSocialSciences = c("HealthSocialScience"),
+  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences","Multidisciplinary", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
 )
 
-# View variance explained and loadings
-print(summary(pca_model))
-print(pca_model$rotation)
+# Create 0/1 membership columns for each subcategory (no changes to existing subject-area columns)
+for (sc in names(subcategory_map)) {
+  areas <- subcategory_map[[sc]]
+  areas_present <- intersect(areas, names(df_wide))
+  df_wide[[sc]] <- if (length(areas_present) == 0) 0L else as.integer(rowSums(df_wide[, areas_present, drop = FALSE], na.rm = TRUE) > 0)
+}
 
-# PCA Loadings Plot
-pc1_loadings_plot <- hagenutils::pca_loadings_plot(pca_model)
+# Subcategory workflow: PCA + Impact Index + K-means WITHIN each subcategory ----
 
-# Extract the raw PC1 scores
-pc1_raw <- pca_model$x[, 1]
+# Map Scopus subject areas (from filenames) to AIRESS subcategories
+subcategory_map <- list(
+  DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
+  Psychology = c(
+    "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
+    "ExperimentalandCognitivePsychology", "SocialPsychology",
+    "DevelopmentalandEducationalPsychology"
+  ),
+  Anthropology = c("Anthropology", "CulturalStudies"),
+  Demography = c("Demography"),
+  Sociology = c("SociologyandPoliticalScience"),
+  PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
+  AppliedSocialSciences = c("HealthSocialScience"),
+  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "Multidisciplinary", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
+)
 
-# Flip PC1 direction so that higher metric values → higher PC1
-# (If the correlation between PC1 and CiteScore is negative, multiply PC1 by -1)
-pc1_dir <- ifelse(cor(df_wide$CiteScore, pc1_raw) < 0, -1, 1)
+# Create 0/1 membership columns for each subcategory (based on subject-area columns already in df_wide)
+for (sc in names(subcategory_map)) {
+  areas <- subcategory_map[[sc]]
+  areas_present <- intersect(areas, names(df_wide))
+  df_wide[[sc]] <- if (length(areas_present) == 0) 0L else as.integer(rowSums(df_wide[, areas_present, drop = FALSE], na.rm = TRUE) > 0)
+}
 
-# Apply the corrected direction
-df_wide$PC1_score <- pc1_raw * pc1_dir
+# Function to run PCA + cutoff + impact index + kmeans within one subcategory
+run_subcat <- function(sc_name, df_all, pca_vars, cutoff_q = 0.25) {
+  
+  df_sc <- df_all %>%
+    filter(.data[[sc_name]] == 1) %>%
+    select(`Source title`, Publisher, all_of(pca_vars))
+  
+  # Keep only rows with complete PCA inputs
+  df_sc <- df_sc %>% drop_na(all_of(pca_vars))
+  
+  # If too small to support PCA/kmeans robustly, return empty
+  if (nrow(df_sc) < 10) {
+    return(tibble())
+  }
+  
+  # PCA
+  pca_model <- prcomp(df_sc[, pca_vars], center = TRUE, scale. = TRUE)
+  pc1_raw <- pca_model$x[, 1]
+  
+  # Orient PC1 so higher metrics -> higher PC1
+  pc1_dir <- ifelse(cor(df_sc$CiteScore, pc1_raw) < 0, -1, 1)
+  df_sc$PC1_score <- pc1_raw * pc1_dir
+  
+  # Apply within-subcategory cutoff (same logic as your global script)
+  pc1_cutoff <- quantile(df_sc$PC1_score, cutoff_q)
+  df_sc <- df_sc %>% filter(PC1_score >= pc1_cutoff)
+  
+  if (nrow(df_sc) < 10) {
+    # still compute within-subcategory impact index, but skip kmeans if too small
+    df_sc <- df_sc %>%
+      mutate(
+        subcategory = sc_name,
+        impact_index = scales::rescale(PC1_score, to = c(0, 100)),
+        cluster_raw = NA_integer_,
+        tier = NA_character_
+      )
+    return(df_sc %>% select(`Source title`, Publisher, subcategory, all_of(pca_vars), PC1_score, impact_index, cluster_raw, tier))
+  }
+  
+  # Impact index (0–100) WITHIN subcategory
+  df_sc <- df_sc %>%
+    mutate(
+      subcategory = sc_name,
+      impact_index = scales::rescale(PC1_score, to = c(0, 100))
+    )
+  
+  # K-means within subcategory
+  set.seed(123)
+  km <- kmeans(df_sc$impact_index, centers = 3)
+  df_sc$cluster_raw <- km$cluster
+  
+  # Label tiers within subcategory by cluster mean
+  cluster_order <- df_sc %>%
+    group_by(cluster_raw) %>%
+    summarise(mean_index = mean(impact_index), .groups = "drop") %>%
+    arrange(mean_index)
+  
+  rank_map <- cluster_order %>%
+    mutate(tier = c("C: Acceptable", "B: Preferred", "A: Excellent"))
+  
+  df_sc <- df_sc %>%
+    left_join(rank_map, by = "cluster_raw")
+  
+  df_sc %>%
+    select(`Source title`, Publisher, subcategory, all_of(pca_vars), PC1_score, impact_index, cluster_raw, tier)
+}
 
-# Determine low-impact cutoff and filter df_wide
-# Choose the cutoff. Here bottom 25%
-pc1_cutoff <- quantile(df_wide$PC1_score, 0.25)
+# Run across all subcategories and KEEP duplicates (journal can appear in multiple subcategories)
+df_subcat <- purrr::map_dfr(
+  names(subcategory_map),
+  run_subcat,
+  df_all = df_wide,
+  pca_vars = pca_vars,
+  cutoff_q = 0.25
+)
 
-cat("Using PC1 cutoff:", pc1_cutoff, "\n")
-
-# Keep only journals above cutoff
-df_wide <- df_wide %>%
-  filter(PC1_score >= pc1_cutoff)
-
-cat("Remaining journals after cutoff:", nrow(df_wide), "\n")
-
-# Compute Impact Index (0–100) AFTER filtering
-df_wide <- df_wide %>%
+# Optional: compute within-subcategory ranks/percentiles for reporting (keeps duplicates)
+df_subcat <- df_subcat %>%
+  group_by(subcategory) %>%
+  arrange(desc(impact_index), .by_group = TRUE) %>%
   mutate(
-    impact_index = scales::rescale(PC1_score, to = c(0, 100))
+    rank_in_subcategory = dense_rank(desc(impact_index)),
+    n_in_subcategory = n(),
+    percentile_in_subcategory = 100 * (1 - (rank_in_subcategory - 1) / pmax(n_in_subcategory - 1, 1))
+  ) %>%
+  ungroup()
+
+
+# PC1 loadings by subcategory (all in one plot) ----------------------------
+
+get_subcat_loadings <- function(sc_name, df_all, pca_vars) {
+  
+  df_sc <- df_all %>%
+    filter(.data[[sc_name]] == 1) %>%
+    select(all_of(pca_vars)) %>%
+    drop_na(all_of(pca_vars))
+  
+  if (nrow(df_sc) < 10) return(tibble())
+  
+  pca_model <- prcomp(df_sc[, pca_vars], center = TRUE, scale. = TRUE)
+  
+  pc1_raw <- pca_model$x[, 1]
+  pc1_dir <- ifelse(cor(df_sc$CiteScore, pc1_raw) < 0, -1, 1)
+  
+  tibble(
+    subcategory = sc_name,
+    metric = rownames(pca_model$rotation),
+    loading = as.numeric(pca_model$rotation[, 1]) * pc1_dir
   )
+}
 
-summary(df_wide$impact_index)
+loadings_all <- purrr::map_dfr(
+  names(subcategory_map),
+  get_subcat_loadings,
+  df_all = df_wide,
+  pca_vars = pca_vars
+)
 
-# Histogram of impact index
-index_hist <- ggplot(df_wide, aes(x = impact_index)) +
-  geom_histogram(bins = 40, color = "black", fill = "steelblue", alpha = 0.85) +
+pc1_loadings_by_subcat_plot <- ggplot(loadings_all, aes(x = metric, y = loading)) +
+  geom_col() +
+  facet_wrap(~ subcategory, scales = "free_y") +
+  coord_flip() +
   labs(
-    title = "Distribution of Impact Index Scores",
-    subtitle = "Impact Index (0–100) derived from PCA on CiteScore, SNIP, and SJR",
-    x = "Impact Index",
-    y = "Number of Journals"
+    title = "PC1 Loadings by Subcategory (PCA within subcategory)",
+    x = NULL,
+    y = "PC1 loading (oriented so higher metrics → higher PC1)"
   ) +
-  theme_minimal(base_size = 16) +
+  theme_minimal(base_size = 14) +
   theme(
-    plot.title    = element_text(size = 20, face = "bold"),
-    plot.subtitle = element_text(size = 14, margin = margin(b = 10)),
-    axis.title.x  = element_text(size = 16),
-    axis.title.y  = element_text(size = 16),
-    axis.text.x   = element_text(size = 14),
-    axis.text.y   = element_text(size = 14)
-  )
-index_hist
-
-# K-means clustering on impact_index --------------------------------------
-
-set.seed(123)
-
-km <- kmeans(df_wide$impact_index, centers = 3)
-
-df_wide$cluster_raw <- km$cluster
-
-# Rank clusters from lowest to highest impact
-
-cluster_order <- df_wide %>%
-  group_by(cluster_raw) %>%
-  summarise(mean_index = mean(impact_index)) %>%
-  arrange(mean_index)
-
-rank_map <- cluster_order %>%
-  mutate(
-    tier = c("C: Acceptable", "B: Preferred", "A: Excellent")
+    strip.text = element_text(face = "bold"),
+    axis.text.y = element_text(size = 12)
   )
 
-df_wide <- df_wide %>%
-  left_join(rank_map, by = "cluster_raw")
+pc1_loadings_by_subcat_plot
 
-# Cluster centers plot 
-cluster_centers <- df_wide %>%
-  group_by(cluster_raw) %>%
-  summarise(center = mean(impact_index), .groups = "drop")
 
-ggplot(cluster_centers, aes(x = factor(cluster_raw), y = center, group = 1)) +
-  geom_line(linewidth = 1.2, color = "steelblue") +
-  geom_point(size = 4, color = "darkred") +
+# K-means descriptive plots by subcategory (all in one plot set) ------------
+
+# Keep only rows where clustering ran (some small subcats may have NA cluster_raw)
+df_km <- df_subcat %>%
+  filter(!is.na(cluster_raw))
+
+# 1) Cluster centers per subcategory
+cluster_centers_by_subcat <- df_km %>%
+  group_by(subcategory, cluster_raw) %>%
+  summarise(center = mean(impact_index, na.rm = TRUE), .groups = "drop")
+
+cluster_centers_plot_all <- ggplot(cluster_centers_by_subcat,
+                                   aes(x = factor(cluster_raw), y = center, group = 1)) +
+  geom_line(linewidth = 1.0) +
+  geom_point(size = 2.5) +
+  facet_wrap(~ subcategory, scales = "free_y") +
   labs(
-    title = "K-means Cluster Centers (Impact Index)",
-    x = "Cluster",
-    y = "Mean Impact Index"
+    title = "ECDF of Impact Index by K-means Cluster (within subcategory)",
+    x = "Impact Index",
+    y = "Cumulative Proportion",
+    color = "Cluster",
+    caption = "Note: K-means cluster labels are arbitrary. Clusters are ordered post hoc by\nmean impact within each subcategory, and tier labels (Excellent, Preferred,\nAcceptable) are assigned accordingly."
   ) +
-  theme_minimal(base_size = 14)
+  theme_minimal(base_size = 13) +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(size = 11),
+    axis.text.y = element_text(size = 11)
+  )
 
-# ECDF separation plot 
-ggplot(df_wide, aes(x = impact_index, color = factor(cluster_raw))) +
-  stat_ecdf(linewidth = 1.1) +
+cluster_centers_plot_all
+
+
+# 2) ECDF separation plot by subcategory
+ecdf_plot_all <- ggplot(df_km, aes(x = impact_index, color = factor(cluster_raw))) +
+  stat_ecdf(linewidth = 1.0) +
+  facet_wrap(~ subcategory, scales = "free_x") +
   labs(
-    title = "ECDF of Impact Index by K-means Cluster",
+    title = "ECDF of Impact Index by K-means Cluster (within subcategory)",
     x = "Impact Index",
     y = "Cumulative Proportion",
     color = "Cluster"
   ) +
-  theme_minimal(base_size = 14)
+  theme_minimal(base_size = 13) +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(size = 11),
+    axis.text.y = element_text(size = 11)
+  )
 
-# Density plot by cluster
-ggplot(df_wide, aes(x = impact_index, fill = factor(cluster_raw))) +
-  geom_density(alpha = 0.4) +
+ecdf_plot_all
+
+
+# 3) Density plot by subcategory
+density_plot_all <- ggplot(df_km, aes(x = impact_index, fill = factor(cluster_raw))) +
+  geom_density(alpha = 0.35) +
+  facet_wrap(~ subcategory, scales = "free_x") +
   labs(
-    title = "Impact Index Density by Cluster",
+    title = "Impact Index Density by K-means Cluster (within subcategory)",
     x = "Impact Index",
     y = "Density",
     fill = "Cluster"
   ) +
-  theme_minimal(base_size = 14)
+  theme_minimal(base_size = 13) +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(size = 11),
+    axis.text.y = element_text(size = 11)
+  )
+
+density_plot_all
 
 
+# Final output (LONG format; journals repeated across subcategories) --------
 
-
-# Final output
-df_final <- df_wide %>%
-  arrange(desc(impact_index)) %>%
+df_final <- df_subcat %>%
+  arrange(subcategory, desc(impact_index)) %>%
   select(
+    subcategory,
+    rank_in_subcategory,
+    percentile_in_subcategory,
     `Source title`,
+    tier,
+    Publisher,
     CiteScore, SNIP, SJR,
     PC1_score,
-    impact_index,
-    tier,
-    everything()
+    impact_index
   )
 
 head(df_final)
-
 
 # Tier distribution plot
 
@@ -291,24 +425,39 @@ tier_plot <- ggplot(df_final, aes(x = impact_index, fill = tier)) +
   )
 tier_plot
 
+# Impact Index histogram by subcategory ------------------------------------
 
-# Save final journal tier list as CSV
+index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
+  geom_histogram(bins = 40, color = "black", fill = "steelblue", alpha = 0.8) +
+  facet_wrap(~ subcategory, scales = "free_x") +
+  coord_cartesian(ylim = c(0, 250)) +
+  labs(
+    title = "Distribution of Impact Index by Subcategory",
+    subtitle = "Impact Index (0–100) computed within each disciplinary subcategory",
+    x = "Impact Index",
+    y = "Number of Journals"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title    = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 13, margin = margin(b = 10)),
+    strip.text    = element_text(size = 12, face = "bold"),
+    axis.title.x  = element_text(size = 13),
+    axis.title.y  = element_text(size = 13),
+    axis.text     = element_text(size = 11)
+  )
+
+index_hist_by_subcat
 
 
-final_export <- df_wide %>%
-  select(
-    `Source title`,
-    CiteScore,
-    SNIP,
-    SJR,
-    PC1_score,
-    impact_index,
-    tier
-  ) %>%
-  arrange(desc(impact_index))
 
-write_csv(final_export, "AIRESS_Journal_Tiers.csv")
+# Save subcategory-specific tier list as CSV --------------------------------
 
-message("Saved: AIRESS_Journal_Tiers.csv")
+write_csv(df_final, "AIRESS_Journal_Tiers_by_Subcategory.csv")
+message("Saved: AIRESS_Journal_Tiers_by_Subcategory.csv")
+
+
+
+
 
 
