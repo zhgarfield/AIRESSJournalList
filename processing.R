@@ -144,7 +144,8 @@ subcategory_map <- list(
   Sociology = c("SociologyandPoliticalScience"),
   PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
   AppliedSocialSciences = c("HealthSocialScience"),
-  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences","Multidisciplinary", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
+  Multidisciplinary = c("Multidisciplinary"),
+  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
 )
 
 # Create 0/1 membership columns for each subcategory (no changes to existing subject-area columns)
@@ -169,7 +170,8 @@ subcategory_map <- list(
   Sociology = c("SociologyandPoliticalScience"),
   PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
   AppliedSocialSciences = c("HealthSocialScience"),
-  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "Multidisciplinary", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
+  Multidisciplinary = c("Multidisciplinary"),
+  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
 )
 
 # Create 0/1 membership columns for each subcategory (based on subject-area columns already in df_wide)
@@ -430,7 +432,7 @@ tier_plot
 index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
   geom_histogram(bins = 40, color = "black", fill = "steelblue", alpha = 0.8) +
   facet_wrap(~ subcategory, scales = "free_x") +
-  coord_cartesian(ylim = c(0, 250)) +
+  coord_cartesian(ylim = c(0, 400)) +
   labs(
     title = "Distribution of Impact Index by Subcategory",
     subtitle = "Impact Index (0–100) computed within each disciplinary subcategory",
