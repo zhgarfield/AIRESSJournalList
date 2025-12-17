@@ -38,6 +38,7 @@ Because Scopus subject categories vary widely in scope and often overlap, indivi
 
 The mapping between Scopus subject categories and AIRESS subcategories used in this analysis is shown in Table 1.
 
+Table 1. Mapping between Scopus subject categories and AIRESS subcategories used in this analysis.
 
 | **AIRESS Subcategory**      | **Scopus Subject Categories Included**                                                                                                                                 |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,7 +49,8 @@ The mapping between Scopus subject categories and AIRESS subcategories used in t
 | **Sociology**               | Sociology and Political Science                                                                                                                                        |
 | **Philosophy of Science**   | History and Philosophy of Science                                                                                                                                      |
 | **Applied Social Sciences** | Health (Social Science)                                                                                                                                                |
-| **Other**                   | Social Sciences (Miscellaneous); General Social Sciences; Multidisciplinary; General Agriculture and Biological Sciences; General Medicine    
+| **Multidisciplinary**       | Multidisciplinary                                                                                                                                                      |
+| **Other**                   | Social Sciences (Miscellaneous); General Social Sciences; General Agriculture and Biological Sciences; General Medicine                                                |
 
 For each Scopus subject category, a Source List (Excel format) was downloaded containing all indexed journals along with their bibliometric indicators, including CiteScore, SNIP (Source Normalized Impact per Paper), SJR (SCImago Journal Rank), publisher information, and associated metadata. Only journal sources were included, and only those ranked in the first or second Scopus quartile (Q1–Q2), in order to focus the analysis on established and widely recognized outlets.
 
@@ -94,7 +96,7 @@ The distribution of the Impact Index, shown in Figure \@ref(fig:index-hist), is 
 
 Rescaling PC1 in this way produces an intuitive and interpretable metric that preserves relative differences in impact while placing journals on a standardized scale suitable for clustering and tier assignment.
 
-```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence."}
+```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence."}
 index_hist_by_subcat
 ```
 

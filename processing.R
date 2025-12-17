@@ -430,9 +430,13 @@ tier_plot
 # Impact Index histogram by subcategory ------------------------------------
 
 index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
-  geom_histogram(bins = 40, color = "black", fill = "steelblue", alpha = 0.8) +
-  facet_wrap(~ subcategory, scales = "free_x") +
-  coord_cartesian(ylim = c(0, 400)) +
+  geom_histogram(
+    bins = 40,
+    color = "black",
+    fill = "steelblue",
+    alpha = 0.8
+  ) +
+  facet_wrap(~ subcategory, scales = "free") +  # <-- key change
   labs(
     title = "Distribution of Impact Index by Subcategory",
     subtitle = "Impact Index (0–100) computed within each disciplinary subcategory",
