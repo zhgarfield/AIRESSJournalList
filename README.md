@@ -1,4 +1,4 @@
-AIRESS Behavioral Science Journal Analysis
+AIRESS Research Journal Analysis and List
 ================
 
 
