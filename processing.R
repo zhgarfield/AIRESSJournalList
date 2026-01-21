@@ -559,11 +559,11 @@ index_hist_by_subcat
 
 tier_overrides_pos <- tibble::tribble(
   ~subcategory,           ~`Source title`,                              ~tier_override,
-  "PhilosophyOfScience",  "Philosophy of Science",                       "A: Excellent", # Mathieu Charbonneau
-  "PhilosophyOfScience",  "History and Philosophy of the Life Sciences", "B: Preferred", # Mathieu Charbonneau
-  "PhilosophyOfScience",  "HOPOS",                                       "B: Preferred", # Mathieu Charbonneau
-  "PhilosophyOfScience",  "Journal of the History of Biology",           "B: Preferred", # Mathieu Charbonneau
-  "Psychology",           "Evolution and Human Behavior",                "B: Preferred"  # Zachary Garfield             
+  "PhilosophyOfScience",  "Philosophy of Science",                       "B: Excellent", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "History and Philosophy of the Life Sciences", "C: Preferred", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "HOPOS",                                       "C: Preferred", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "Journal of the History of Biology",           "C: Preferred", # Mathieu Charbonneau
+  "Psychology",           "Evolution and Human Behavior",                "B: Excellent"  # Zachary Garfield             
 )
 
 df_final <- df_final %>%
