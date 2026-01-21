@@ -5639,13 +5639,13 @@ PhilosophyOfScience,31,67.74193548387098,Studia Logica,C: Preferred,Springer Nat
 PhilosophyOfScience,32,66.66666666666667,History and Technology,C: Preferred,Taylor & Francis,2.1,1.322,0.443,0.3317612627280804,17.245479818081748
 PhilosophyOfScience,33,65.59139784946237,History and Philosophy of Logic,C: Preferred,Taylor & Francis,1,1.523,0.46,0.2525749020690314,16.235777189916757
 PhilosophyOfScience,34,64.51612903225806,Centaurus,C: Preferred,Tech Science Press,2.9,1.238,0.182,0.1002728667981492,14.293779047711269
-PhilosophyOfScience,35,63.44086021505376,Philosophy of Science,C: Preferred,Cambridge University Press,1.8,0.821,0.695,0.09200120584620368,14.188307376416386
+PhilosophyOfScience,35,63.44086021505376,Philosophy of Science,A: Excellent,Cambridge University Press,1.8,0.821,0.695,0.09200120584620368,14.188307376416386
 PhilosophyOfScience,36,62.365591397849464,Intellectual History Review,C: Preferred,Taylor & Francis,1.1,1.531,0.29,0.04768368305519905,13.623216130103053
 PhilosophyOfScience,37,61.29032258064516,Journal of the Philosophy of History,C: Preferred,Brill,0.8,1.544,0.304,-0.0034460017714398163,12.971263234212449
 PhilosophyOfScience,38,60.215053763440864,Foundations of Physics,C: Preferred,Springer Nature,2.5,0.832,0.478,-0.007893189935555784,12.914557287129133
 PhilosophyOfScience,39,59.13978494623655,Science and Technology Studies,C: Preferred,Finnish Society for Science and Technology Studies,3,0.84,0.371,-0.011001236725431142,12.874926686782329
 PhilosophyOfScience,40,58.06451612903225,Perspectives on Science,C: Preferred,MIT Press,2,1.039,0.423,-0.01447914911555099,12.83057994257531
-PhilosophyOfScience,41,56.98924731182795,History and Philosophy of the Life Sciences,C: Preferred,Springer Nature,3.2,0.779,0.36,-0.03286366956749925,12.596159539069065
+PhilosophyOfScience,41,56.98924731182795,History and Philosophy of the Life Sciences,B: Preferred,Springer Nature,3.2,0.779,0.36,-0.03286366956749925,12.596159539069065
 PhilosophyOfScience,42,55.91397849462365,Foresight and STI Governance,C: Preferred,National Research University Higher School of Economics (HSE University),3,0.833,0.352,-0.045124353056786505,12.439823975227013
 PhilosophyOfScience,43,54.83870967741935,Journal of East Asian Linguistics,C: Preferred,Springer Nature,0.8,1.119,0.575,-0.05413091436692708,12.32498161411973
 PhilosophyOfScience,44,53.76344086021505,European Journal of the History of Economic Thought,C: Preferred,Taylor & Francis,1.4,1.173,0.411,-0.06290582649789596,12.213093003924538
@@ -5685,9 +5685,9 @@ PhilosophyOfScience,77,18.279569892473113,Medical Problems of Performing Artists
 PhilosophyOfScience,78,17.204301075268813,Ukrainian Geographical Journal,D: Acceptable,Publishing House Akademperiodyka,1.4,0.743,0.244,-0.7401120038737274,3.578059755584372
 PhilosophyOfScience,79,16.129032258064512,Perspectives in Biology and Medicine,D: Acceptable,Johns Hopkins University Press,1.7,0.558,0.312,-0.7487584450480173,3.4678092742477644
 PhilosophyOfScience,80,15.053763440860212,Theology and Science,D: Acceptable,Taylor & Francis,0.9,0.885,0.231,-0.7536653015034449,3.4052421122032044
-PhilosophyOfScience,81,13.978494623655912,Journal of the History of Biology,D: Acceptable,Springer Nature,1.4,0.711,0.243,-0.7742956803414598,3.142184843761829
+PhilosophyOfScience,81,13.978494623655912,Journal of the History of Biology,B: Preferred,Springer Nature,1.4,0.711,0.243,-0.7742956803414598,3.142184843761829
 PhilosophyOfScience,82,12.903225806451612,Arabic Sciences and Philosophy,D: Acceptable,Cambridge University Press,0.6,1.079,0.121,-0.7953901861841106,2.873209507455193
-PhilosophyOfScience,83,11.827956989247312,HOPOS,D: Acceptable,University of Chicago Press,1.2,0.706,0.257,-0.8157547826918695,2.613541220590263
+PhilosophyOfScience,83,11.827956989247312,HOPOS,B: Preferred,University of Chicago Press,1.2,0.706,0.257,-0.8157547826918695,2.613541220590263
 PhilosophyOfScience,84,10.752688172043012,Bulletin of Ugric Studies,D: Acceptable,Ob-Ugric Institute of Applied Researches and Development,0.6,0.807,0.294,-0.8284527694372769,2.451629617600375
 PhilosophyOfScience,85,9.677419354838712,History of Science and Technology,D: Acceptable,State University of Infrastructure and Technologies,1.1,0.711,0.246,-0.8543421063259091,2.1215155514867226
 PhilosophyOfScience,86,8.602150537634412,History of Education,D: Acceptable,Taylor & Francis,1.2,0.535,0.35,-0.8589010241717049,2.0633849429806954
@@ -7093,7 +7093,7 @@ Psychology,220,63.37792642140469,Clinical Neuropsychologist,D: Acceptable,Taylor
 Psychology,221,63.21070234113713,Journal of Creativity,D: Acceptable,Elsevier,5.6,1.849,0.971,0.19063071444324964,5.115750469741841
 Psychology,222,63.04347826086957,Journal of Attention Disorders,D: Acceptable,SAGE,6.8,1.304,1.212,0.19042638374180218,5.114704287038354
 Psychology,223,62.87625418060201,Early Education and Development,D: Acceptable,Taylor & Francis,5.6,1.616,1.165,0.17488500893854494,5.035131724557974
-Psychology,224,62.70903010033445,Evolution and Human Behavior,D: Acceptable,Elsevier,5.8,1.368,1.355,0.17382268698276762,5.029692586690798
+Psychology,224,62.70903010033445,Evolution and Human Behavior,B: Preferred,Elsevier,5.8,1.368,1.355,0.17382268698276762,5.029692586690798
 Psychology,225,62.54180602006689,Stress and Health,D: Acceptable,John Wiley & Sons,5.3,1.417,1.412,0.1664949900035517,4.992174437035612
 Psychology,226,62.37458193979932,Psychology of Women Quarterly,D: Acceptable,SAGE,5.6,1.61,1.141,0.15981970006410784,4.957996641795146
 Psychology,227,62.207357859531776,Journal of Positive Behavior Interventions,D: Acceptable,SAGE,5.1,1.854,1,0.1476508951820326,4.895691794312314
