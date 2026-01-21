@@ -1,5 +1,5 @@
 ---
-title: "AIRESS Behavioral Science Journal Analysis"
+title: "AIRESS Research Journal Analysis"
 author: "Pr. Zachary Garfield"
 date: "`r Sys.Date()`"
 output:
@@ -16,13 +16,35 @@ source("processing.R")
 library(DT)
 ```
 
+# Executive Summary
+
+This report presents a comprehensive, data-driven framework for evaluating academic journals across the full range of research domains represented at AIRESS (UM6P), including behavioral science, political science, economics, law, geography and development, computational methods, and global affairs.
+
+Key features of the analysis include:
+
+- Compilation of **Scopus Q1–Q2 journal lists (2024)** across all major research areas in which AIRESS faculty publish.
+- Organization of Scopus subject categories into **disciplinary AIRESS subcategories**, designed to reflect research practice rather than formal program boundaries.
+- Construction of a **within-subcategory impact metric** using Principal Component Analysis (PCA) on CiteScore, SNIP, and SJR.
+- Removal of the **lowest-impact quartile within each subcategory** to improve interpretability and focus on relevant publication venues.
+- Rescaling of impact scores to a **0–100 Impact Index**, computed separately within each subcategory.
+- Application of **k-means clustering (k = 4)** within each subcategory to identify natural journal tiers:
+  - **A: Elite**
+  - **B: Excellent**
+  - **C: Preferred**
+  - **D: Acceptable**
+- Generation of diagnostic visualizations (loadings, distributions, ECDFs) to assess the stability and clarity of tier separation.
+- Production of a **sortable, searchable interactive table** allowing faculty and administrators to explore journal rankings by subcategory.
+
+The resulting framework provides a transparent, reproducible basis for publication strategy, mentoring, and evaluation across all AIRESS research domains, while remaining adaptable as citation practices evolve and new journals emerge.
+
+
 # Introduction
 
-The goal of this project is to build a transparent, evidence-based classification of academic journals relevant to the interdisciplinary Behavioral Sciences at AIRESS and UM6P. Faculty and students routinely make decisions about where to publish, which journals to prioritize, and how to interpret publication records. Yet journal quality is uneven across fields, citation practices differ substantially by discipline, and intuitive judgments are often shaped by disciplinary silos. This report therefore develops a principled, reproducible system for evaluating journals within their appropriate disciplinary contexts, while remaining comparable across the broader behavioral sciences.
+The goal of this project is to build a transparent, evidence-based classification of academic journals relevant to the full range of interdisciplinary research domains represented at AIRESS and UM6P, including behavioral science, political science, economics, law, geography and development, computational methods, and global affairs. Faculty and students routinely make decisions about where to publish, which journals to prioritize, and how to interpret publication records. Yet journal quality is uneven across fields, citation practices differ substantially by discipline, and intuitive judgments are often shaped by disciplinary silos. This report therefore develops a principled, reproducible system for evaluating journals within their appropriate disciplinary contexts, while remaining comparable across the broader behavioral sciences.
 
-We begin by assembling and cleaning a curated set of Scopus journal lists across subject areas aligned with behavioral science, including psychology, anthropology, decision sciences, demography, sociology, philosophy of science, and applied social sciences. These data are harmonized into a single dataset, with journals allowed to appear in multiple subject areas to reflect their interdisciplinary positioning.
+We begin by assembling and cleaning a curated set of **Scopus journal lists** across subject areas aligned with the full scope of AIRESS research, including psychology, anthropology, decision sciences, economics, political science and international relations, law, geography and development, computational and methodological fields, and related domains. These data are harmonized into a single dataset, with journals allowed to appear in multiple subject areas to reflect their interdisciplinary positioning.
 
-Rather than imposing a single, global ranking across all fields, we adopt a within-subcategory evaluation strategy. Journals are grouped into a small number of disciplinary subcategories, and all subsequent analyses—impact estimation, filtering, and tiering—are conducted within each subcategory. This approach respects differences in citation density, publication norms, and scale across disciplines, while still producing a coherent and transparent evaluation framework.                         |
+Rather than imposing a single, global ranking across all fields, we adopt a within-subcategory evaluation strategy (See Table 1). Journals are grouped into a small number of disciplinary subcategories (ddetermined through consultation with AIRESS faculty and research leadership), and all subsequent analyses—impact estimation, filtering, and tiering—are conducted within each subcategory. This approach respects differences in citation density, publication norms, and scale across disciplines, while still producing a coherent and transparent evaluation framework.
 
 To assess journal impact in a unified and data-driven way, we conduct a Principal Component Analysis (PCA) on three widely used bibliometric indicators—CiteScore, SNIP, and SJR—within each subcategory. PCA extracts the shared underlying signal among these metrics, producing a single latent “impact” dimension (PC1) that summarizes overall journal standing without overweighting any single citation measure. This approach yields an interpretable measure of impact that is calibrated to disciplinary context rather than distorted by cross-field differences in citation practices.
 
@@ -32,7 +54,7 @@ Finally, we convert the latent impact scores into an intuitive 0–100 Impact In
 
 # Data Sources
 
-Scopus is the most comprehensive and widely used bibliometric database in the behavioral and social sciences. To capture the breadth of scholarship represented at AIRESS, we assembled a curated set of Scopus subject categories most relevant to interdisciplinary behavioral science. In total, `r length(unique(data$subject_area))` Scopus subject areas were included, spanning psychology, anthropology, decision sciences, demography, sociology, philosophy of science, applied social sciences, and related domains.
+Scopus is the most comprehensive and widely used bibliometric database in the behavioral and social sciences. To capture the breadth of scholarship represented at AIRESS, we assembled a curated set of Scopus subject categories most relevant to the interdisciplinary research portfolio of AIRESS, spanning the social sciences, behavioral sciences, economics, governance, law, development studies, and computational methods. In total, `r length(unique(data$subject_area))` Scopus subject areas were included, spanning psychology, anthropology, decision sciences, demography, sociology, philosophy of science, applied social sciences, and related domains.
 
 Because Scopus subject categories vary widely in scope and often overlap, individual subject areas were grouped into a smaller number of analytically meaningful AIRESS subcategories. This step serves two purposes. First, it reflects how behavioral science is organized in practice at AIRESS, where research and training span multiple adjacent Scopus classifications. Second, it provides an appropriate unit for within-discipline evaluation, ensuring that journals are compared against relevant peers rather than across fields with fundamentally different citation norms.
 
@@ -40,17 +62,24 @@ The mapping between Scopus subject categories and AIRESS subcategories used in t
 
 Table 1. Mapping between Scopus subject categories and AIRESS subcategories used in this analysis.
 
-| **AIRESS Subcategory**      | **Scopus Subject Categories Included**                                                                                                                                 |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Decision Sciences**       | Decision Sciences (Miscellaneous); General Decision Sciences                                                                                                           |
-| **Psychology**              | Psychology (Miscellaneous); General Psychology; Applied Psychology; Experimental and Cognitive Psychology; Social Psychology; Developmental and Educational Psychology |
-| **Anthropology**            | Anthropology; Cultural Studies                                                                                                                                         |
-| **Demography**              | Demography                                                                                                                                                             |
-| **Sociology**               | Sociology and Political Science                                                                                                                                        |
-| **Philosophy of Science**   | History and Philosophy of Science                                                                                                                                      |
-| **Applied Social Sciences** | Health (Social Science)                                                                                                                                                |
-| **Multidisciplinary**       | Multidisciplinary                                                                                                                                                      |
-| **Other**                   | Social Sciences (Miscellaneous); General Social Sciences; General Agriculture and Biological Sciences; General Medicine                                                |
+| **AIRESS Subcategory**                 | **Scopus Subject Categories Included**                                                                                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Anthropology**                      | Anthropology; Cultural Studies                                                                                                                                                               |
+| **Applied Social Sciences**           | Health (Social Science); Development                                                                                                                                                         |
+| **Computational & Methods**           | Artificial Intelligence; Modeling and Simulation; Statistics and Probability; Statistics Probability and Uncertainty                                                                                                                  |
+| **Decision Sciences**                 | Decision Sciences (Miscellaneous); General Decision Sciences                                                                                                                                 |
+| **Demography**                        | Demography                                                                                                                                                                                   |
+| **Economics**                         | Economics and Econometrics; General Economics, Econometrics and Finance; Economics, Econometrics and Finance (Miscellaneous)                                                                |
+| **Geography, Planning & Development** | Geography, Planning and Development; Transportation                                                                                                                                    |
+| **History**                           | History                                                                                                                                                                                      |
+| **Law**                               | Law; Management, Monitoring, Policy and Law                                                                                                                                                      |
+| **Multidisciplinary**                 | Multidisciplinary                                                                                                                                                                            |
+| **Philosophy of Science**             | History and Philosophy of Science                                                                                                                                                            |
+| **Political Science and IR**          | Political Science and International Relations; Public Administration; Religious Studies                                                                                                      |
+| **Psychology**                        | Psychology (Miscellaneous); General Psychology; Applied Psychology; Experimental and Cognitive Psychology; Social Psychology; Developmental and Educational Psychology                       |
+| **Sociology**                         | Sociology and Political Science                                                                                                                                                              |
+| **Other**                             | Social Sciences (Miscellaneous); General Social Sciences; General Agriculture and Biological Sciences; General Medicine; Communication; Philosophy                                            |
+                                      |
 
 For each Scopus subject category, a Source List (Excel format) was downloaded containing all indexed journals along with their bibliometric indicators, including CiteScore, SNIP (Source Normalized Impact per Paper), SJR (SCImago Journal Rank), publisher information, and associated metadata. Only journal sources were included, and only those ranked in the first or second Scopus quartile (Q1–Q2), in order to focus the analysis on established and widely recognized outlets.
 
@@ -78,7 +107,7 @@ Figure \@ref(fig:pca-loadings) shows the PC1 loadings for each subcategory. Acro
 
 Higher-order components (PC2 and PC3) account for only small residual variation and do not correspond to interpretable dimensions of journal quality. For this reason, only PC1 is retained for the construction of the Impact Index and for all subsequent analyses.
 
-```{r pca-loadings, fig.cap="PC1 loadings by subcategory. CiteScore, SNIP, and SJR load strongly and in the same direction across all subcategories, indicating a stable latent dimension of journal impact. Higher-order components capture only minor residual variation and are not used in subsequent analyses.", fig.width=8}
+```{r pca-loadings, fig.cap="PC1 loadings by subcategory. CiteScore, SNIP, and SJR load strongly and in the same direction across all subcategories, indicating a stable latent dimension of journal impact. Higher-order components capture only minor residual variation and are not used in subsequent analyses.", fig.width=12}
 pc1_loadings_by_subcat_plot
 ```
 
@@ -96,7 +125,7 @@ The distribution of the Impact Index, shown in Figure \@ref(fig:index-hist), is 
 
 Rescaling PC1 in this way produces an intuitive and interpretable metric that preserves relative differences in impact while placing journals on a standardized scale suitable for clustering and tier assignment.
 
-```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence."}
+```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence.", fig.width=13}
 index_hist_by_subcat
 ```
 
@@ -108,7 +137,7 @@ K-means clustering was applied separately within each AIRESS subcategory, using 
 
 K-means assigns each journal to a cluster characterized by a centroid representing the mean Impact Index of that group. Because cluster labels are inherently unordered, clusters were subsequently sorted by their mean Impact Index and mapped onto qualitative tiers: the highest-mean cluster was labeled Tier A (Excellent), the intermediate cluster Tier B (Preferred), and the lowest-mean cluster Tier C (Acceptable). This post hoc ordering guarantees that tier labels always reflect relative impact, regardless of the numeric cluster identifiers produced by the algorithm. See \@ref(fig:clusterplot).
 
-```{r clusterplot, fig.cap="K-means cluster centers by subcategory. The figure shows the mean Impact Index for each cluster within disciplinary subcategories. Clusters are ordered post hoc by mean impact, and tier labels (Excellent, Preferred, Acceptable) reflect relative standing rather than the numeric cluster identifiers produced by k-means."}
+```{r clusterplot, fig.cap="K-means cluster centers by subcategory. The figure shows the mean Impact Index for each cluster within disciplinary subcategories. Clusters are ordered post hoc by mean impact, and tier labels (Excellent, Preferred, Acceptable) reflect relative standing rather than the numeric cluster identifiers produced by k-means.", fig.width=12}
 cluster_centers_plot_all
 ```
 
@@ -122,7 +151,7 @@ This procedure yields a clear, data-driven tier structure within each subcategor
 
 To evaluate how clearly the k-means clustering separates journals within each subcategory, we examine the empirical cumulative distribution functions (ECDFs) of the Impact Index by cluster, shown in Figure \@ref(fig:ecdf_plot_all). Unlike summary statistics or cluster centers alone, ECDFs display the full distribution of journal impact within each tier, allowing us to assess whether higher-tier clusters consistently dominate lower-tier clusters across the entire impact range. Curves that lie further to the right indicate clusters with systematically higher impact, while the degree of overlap between curves reflects how sharply tiers are differentiated within a given subcategory. Where ECDF curves are well separated, tier boundaries are clear; where they overlap or cross, distinctions between tiers are more gradual, reflecting continuous variation or heterogeneity in citation practices within the field. This visualization therefore provides an important diagnostic check on the robustness and interpretability of the tiering system across disciplinary contexts.
 
-```{r ecdfplot, fig.cap="ECDFs of the Impact Index by cluster and subcategory. Right-shifted curves correspond to higher-impact tiers; overlap indicates continuous variation. Cluster IDs are arbitrary and mapped to tiers post hoc by mean impact."}
+```{r ecdfplot, fig.cap="ECDFs of the Impact Index by cluster and subcategory. Right-shifted curves correspond to higher-impact tiers; overlap indicates continuous variation. Cluster IDs are arbitrary and mapped to tiers post hoc by mean impact.", fig.width=13}
 ecdf_plot_all
 ```
 
@@ -132,10 +161,16 @@ As shown in Figure \@ref(fig:tierplot), the resulting tier distributions exhibit
 tier_plot
 ```
 
+# Next steps
+
+AIRESS faculty can now propose manual updates to this list, either by suggesting adding or subtracting journals or altering a journals ranking.
+
+Faculty may propose the inclusion of journals that do not appear in the current Scopus-based list or that do not meet the quantitative criteria used in this analysis. Such journals may be designated as off-list (or hors catégorie), reflecting their relevance for particular research areas, regional contexts, languages, or scholarly traditions that are not well captured by standard bibliometric indicators. Off-list journals are acknowledged as legitimate and potentially valuable publication venues; however, they are not evaluated or tiered using the PCA- and clustering-based framework described in this report. As a result, their inclusion does not imply equivalence with journals appearing in the A/B/C tiers, and they should be interpreted separately in evaluation, mentoring, and reporting contexts. This provision is intended to preserve disciplinary flexibility and intellectual diversity while maintaining transparency about which journals are evaluated using standardized quantitative criteria and which are recognized through faculty judgment.
+
 # Conclusion 
 By combining a PCA-derived Impact Index with within-subcategory k-means clustering, this analysis produces a tiering system that reflects real structure in the bibliometric data rather than subjective impressions or arbitrary thresholds. Evaluating journals relative to their disciplinary peers ensures that differences in citation density and publication norms across fields do not distort assessments of journal quality.
 
-The resulting framework is reproducible, principled, and transparent. It provides a flexible tool for guiding publication strategy, mentoring, and evaluation within the behavioral sciences, while remaining adaptable over time. As Scopus metrics evolve and new journals emerge, the system can be readily updated using the same workflow, ensuring continued relevance and methodological consistency.
+The resulting framework is reproducible, principled, and transparent. It provides a flexible tool for guiding publication strategy, mentoring, and evaluation across the full range of research domains represented at AIRESS, while remaining adaptable over time. As Scopus metrics evolve and new journals emerge, the system can be readily updated using the same workflow, ensuring continued relevance and methodological consistency.
 
 # Appendix
 

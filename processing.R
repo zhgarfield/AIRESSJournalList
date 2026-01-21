@@ -77,7 +77,7 @@ library(forcats)
 
 # Read files --------------------------------------------------------------
 
-data_dir <- "./files/behavioral_science/"
+data_dir <- "./files/scopus_sources"
 file_list <- list.files(data_dir, pattern = "\\.xlsx$", full.names = TRUE)
 
 read_and_tag <- function(filepath) {
@@ -133,20 +133,91 @@ df_wide <- journal_metadata %>%
 # Subcategory mapping ------------------------------------------------------
 
 subcategory_map <- list(
-  DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
+  Anthropology = c(
+    "Anthropology",
+    "CulturalStudies"
+  ),
+  
+  AppliedSocialSciences = c(
+    "HealthSocialScience",
+    "Development"
+  ),
+  
+  ComputationalAndMethods = c(
+    "ArtificialIntelligence",
+    "ModelingandSimulation",
+    "StatisticsandProbability",
+    "StatisticsProbabilityandUncertainty"
+    
+  ),
+  
+  DecisionSciences = c(
+    "DecisionSciencesMiscellaneous",
+    "GeneralDecisionSciences"
+  ),
+  
+  Demography = c(
+    "Demography"
+  ),
+  
+  Economics = c(
+    "EconomicsandEconometrics",
+    "GeneralEconomicsEconometricsandFinance",
+    "EconomicsEconometricsandFinanceMiscellaneous"
+  ),
+  
+  GeographyPlanningAndDevelopment = c(
+    "GeographyPlanningandDevelopment",
+    "Transportation"
+  ),
+  
+  History = c(
+    "History"
+  ),
+  
+  Law = c(
+    "ManagementMonitoringPolicyandLaw",
+    "Law"
+  ),
+  
+  Multidisciplinary = c(
+    "Multidisciplinary"
+  ),
+  
+  PhilosophyOfScience = c(
+    "HistoryandPhilosophyofScience"
+  ),
+  
+  PoliticalScienceAndIR = c(
+    "PoliticalScienceandInternationalRelations",
+    "SociologyandPoliticalScience",
+    "PublicAdministration",
+    "ReligiousStudies"
+  ),
+  
   Psychology = c(
-    "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
-    "ExperimentalandCognitivePsychology", "SocialPsychology",
+    "PsychologyMiscellaneous",
+    "GeneralPsychology",
+    "AppliedPsychology",
+    "ExperimentalandCognitivePsychology",
+    "SocialPsychology",
     "DevelopmentalandEducationalPsychology"
   ),
-  Anthropology = c("Anthropology", "CulturalStudies"),
-  Demography = c("Demography"),
-  Sociology = c("SociologyandPoliticalScience"),
-  PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
-  AppliedSocialSciences = c("HealthSocialScience"),
-  Multidisciplinary = c("Multidisciplinary"),
-  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
+  
+  Sociology = c(
+    "SociologyandPoliticalScience"
+  ),
+  
+  Other = c(
+    "SocialSciencesMiscellaneous",
+    "GeneralSocialSciences",
+    "GeneralAgricultureandBiologicalSciences",
+    "GeneralMedicine",
+    "Communication",
+    "Philosophy"
+  )
 )
+
 
 # Create 0/1 membership columns for each subcategory (no changes to existing subject-area columns)
 for (sc in names(subcategory_map)) {
@@ -158,21 +229,21 @@ for (sc in names(subcategory_map)) {
 # Subcategory workflow: PCA + Impact Index + K-means WITHIN each subcategory ----
 
 # Map Scopus subject areas (from filenames) to AIRESS subcategories
-subcategory_map <- list(
-  DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
-  Psychology = c(
-    "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
-    "ExperimentalandCognitivePsychology", "SocialPsychology",
-    "DevelopmentalandEducationalPsychology"
-  ),
-  Anthropology = c("Anthropology", "CulturalStudies"),
-  Demography = c("Demography"),
-  Sociology = c("SociologyandPoliticalScience"),
-  PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
-  AppliedSocialSciences = c("HealthSocialScience"),
-  Multidisciplinary = c("Multidisciplinary"),
-  Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
-)
+# subcategory_map <- list(
+#   DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
+#   Psychology = c(
+#     "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
+#     "ExperimentalandCognitivePsychology", "SocialPsychology",
+#     "DevelopmentalandEducationalPsychology"
+#   ),
+#   Anthropology = c("Anthropology", "CulturalStudies"),
+#   Demography = c("Demography"),
+#   Sociology = c("SociologyandPoliticalScience"),
+#   PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
+#   AppliedSocialSciences = c("HealthSocialScience"),
+#   Multidisciplinary = c("Multidisciplinary"),
+#   Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
+# )
 
 # Create 0/1 membership columns for each subcategory (based on subject-area columns already in df_wide)
 for (sc in names(subcategory_map)) {
@@ -229,7 +300,7 @@ run_subcat <- function(sc_name, df_all, pca_vars, cutoff_q = 0.25) {
   
   # K-means within subcategory
   set.seed(123)
-  km <- kmeans(df_sc$impact_index, centers = 3)
+  km <- kmeans(df_sc$impact_index, centers = 4)
   df_sc$cluster_raw <- km$cluster
   
   # Label tiers within subcategory by cluster mean
@@ -239,7 +310,7 @@ run_subcat <- function(sc_name, df_all, pca_vars, cutoff_q = 0.25) {
     arrange(mean_index)
   
   rank_map <- cluster_order %>%
-    mutate(tier = c("C: Acceptable", "B: Preferred", "A: Excellent"))
+    mutate(tier = c("D: Acceptable", "C: Preferred", "B: Excellent", "A: Elite"))
   
   df_sc <- df_sc %>%
     left_join(rank_map, by = "cluster_raw")
@@ -455,6 +526,31 @@ index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
 
 index_hist_by_subcat
 
+
+# Faculty proposed alterations --------------------------------------------
+
+# MANUAL TIER OVERRIDES BY JOURNAL NAME (post-processing)
+
+
+tier_overrides_pos <- tibble::tribble(
+  ~subcategory,           ~`Source title`,                              ~tier_override,
+  "PhilosophyOfScience",  "Philosophy of Science",                       "A: Excellent", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "History and Philosophy of the Life Sciences", "B: Preferred", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "HOPOS",                                       "B: Preferred", # Mathieu Charbonneau
+  "PhilosophyOfScience",  "Journal of the History of Biology",           "B: Preferred", # Mathieu Charbonneau
+  "Psychology",           "Evolution and Human Behavior",                "B: Preferred"  # Zachary Garfield             
+)
+
+df_final <- df_final %>%
+  left_join(tier_overrides_pos, by = c("subcategory", "Source title")) %>%
+  mutate(tier = dplyr::if_else(!is.na(tier_override), tier_override, tier)) %>%
+  select(-tier_override)
+
+# Optional: verify (should show only PhilosophyOfScience rows updated)
+df_final %>%
+  filter(subcategory == "PhilosophyOfScience",
+         `Source title` %in% tier_overrides_pos$`Source title`) %>%
+  select(subcategory, rank_in_subcategory, `Source title`, tier, impact_index, Publisher)
 
 
 # Save subcategory-specific tier list as CSV --------------------------------

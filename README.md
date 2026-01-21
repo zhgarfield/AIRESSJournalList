@@ -8,21 +8,28 @@ AIRESS Behavioral Science Journal Analysis
 
 ## Overview
 
-This repository contains a fully reproducible workflow for constructing a transparent, data-driven classification of academic journals relevant to the interdisciplinary Behavioral Sciences at AIRESS (UM6P).
+This repository contains a fully reproducible workflow for constructing a transparent, data-driven classification of academic journals relevant to all research domains represented at AIRESS (UM6P), including behavioral science, political science, economics, law, history, geography and development, and global affairs.
 
-The project integrates bibliometric data from Scopus (2024), applies dimensionality reduction to derive a discipline-aware journal impact measure, and uses unsupervised clustering to generate a defensible tiering system within disciplinary subcategories. The resulting framework supports publication strategy, research evaluation, student mentoring, and institutional planning, while respecting differences in citation practices across fields.
+The project integrates bibliometric data from Scopus (2024), applies dimensionality reduction to derive discipline-aware measures of journal impact, and uses unsupervised clustering to generate a defensible tiering system within disciplinary subcategories. The resulting framework is intended to support publication strategy, research evaluation, student mentoring, and institutional planning, while respecting substantial differences in citation practices, scale, and publication norms across fields.
 
-Journals are classified into three tiers within each subcategory:
+Rather than imposing a single global ranking, journals are evaluated relative to appropriate disciplinary peers. Because journals may belong to multiple subcategories, the same journal may appear more than once in the final output, with different impact scores or tier assignments depending on context.
 
-- **A: Excellent**  
-- **B: Preferred**  
-- **C: Acceptable**  
+## Journal Tiers
 
-Because journals may belong to multiple disciplinary subcategories, the same journal may appear more than once in the final output, with different scores or tier assignments depending on context.
+Within each AIRESS subcategory, journals are classified into four data-driven tiers:
+
+* *Elite* – exceptionally influential journals forming the upper tail of the impact distribution
+* *Excellent* – top-tier journals with consistently high impact and visibility
+* *Preferred* – solid, reputable journals appropriate for strong publication outcomes
+* *Acceptable* – legitimate journals with modest impact, suitable for specialized or early-stage work
+
+In addition, the framework explicitly allows for:
+
+*Off-list* / *hors catégorie* journals: faculty-nominated outlets that are relevant for particular research areas, languages, regions, or scholarly traditions but are not evaluated using the quantitative tiering system.
+
+Off-list journals are acknowledged as legitimate venues but are not directly comparable to journals appearing in the Elite–Acceptable tiers.
 
 ## Repository Structure
-
-## Directory Structure
 
 ```text
 AIRESSJournalList/
@@ -39,26 +46,34 @@ AIRESSJournalList/
 │   │   ├── cluster_ecdf_by_subcategory.png
 │   │   └── density_by_subcategory.png
 ├── files/
-│   └── behavioral_science/     # Raw Scopus subject-area Excel files
+│   └── scopus_sources/         # Raw Scopus subject-area Excel files
 │       ├── source-resultsDecisionSciencesMiscellaneous.xlsx
 │       ├── source-resultsGeneralDecisionSciences.xlsx
-│       ├── source-resultsGeneralPsychology.xlsx
+│       ├── source-resultsPoliticalScienceandInternationalRelations.xlsx
+│       ├── source-resultsEconomicsandEconometrics.xlsx
 │       ├── ...
-└── .gitignore                  # File ignore rules
+└── .gitignore
 ```
 
 ## Data Sources
 
-The analysis uses Scopus 2024 Source Lists drawn from subject areas most relevant to behavioral science research and training at AIRESS, including:
+The analysis uses Scopus 2024 Source Lists drawn from subject areas relevant to the full scope of AIRESS research, including:
 
-* Psychology (General, Applied, Cognitive, Developmental, Social)
-* Anthropology and Cultural Studies
-* Decision Sciences
+* Anthropology
+* Applied Social Sciences	
+* Computational & Methods	
+* Decision SciencesSciences
 * Demography
-* Sociology and Political Science
-* History and Philosophy of Science
-* Health (Social Science)
-* Multidisciplinary and related social science domains
+* Economics
+* Geography, Planning & Development
+* History	
+* Law
+* Multidisciplinary	
+* Philosophy of Science
+* Political Science and IR	
+* Psychology	
+* Sociology
+* Other	
 
 Each Scopus source file includes:
 
@@ -67,7 +82,7 @@ Each Scopus source file includes:
 * SJR (SCImago Journal Rank)
 * Publisher information and metadata
 
-Two epidemiological policy outlets (MMWR Surveillance Summaries and MMWR Recommendations and Reports) were removed because they fall outside the scope of behavioral science publishing and would disproportionately influence citation-based analyses.
+Two epidemiological policy outlets (**MMWR Surveillance Summaries** and **MMWR Recommendations and Reports**) were removed at the outset, as they function primarily as surveillance reports rather than scholarly journals and would disproportionately distort citation-based analyses.
 
 ## Methodology
 
@@ -77,36 +92,30 @@ All Scopus source files are read, tagged with subject-area identifiers extracted
 
 ### 2. Subcategory Mapping
 
-Scopus subject areas are grouped into a smaller set of analytically meaningful AIRESS subcategories (e.g., Psychology, Anthropology, Decision Sciences). These subcategories reflect how behavioral science is organized in practice at AIRESS and serve as the unit of evaluation for all subsequent analyses.
+Scopus subject areas are grouped into a set of AIRESS subcategories designed to reflect the research domains represented across AIRESS rather than mirroring Scopus classifications one-to-one. These subcategories form the unit of evaluation for all subsequent analyses and allow journals to be assessed relative to appropriate disciplinary peers.
 
 ### 3. Principal Component Analysis (PCA)
 
-Within each subcategory, PCA is applied to three correlated citation metrics (CiteScore, SNIP, SJR). The first principal component (PC1) captures the dominant shared signal among these measures and serves as a latent, discipline-specific impact dimension. PC1 is oriented so that higher values correspond to higher citation performance.
+Within each subcategory, PCA is applied to CiteScore, SNIP, and SJR. The first principal component (PC1) captures the dominant shared signal among these metrics and serves as a latent, discipline-specific measure of journal impact. PC1 is oriented so that higher values correspond to higher citation performance.
 
 ### 4. Filtering and Impact Index Construction
 
-Within each subcategory, journals in the lowest quartile of PC1 scores are removed to avoid distortions from extremely low-impact outlets. Remaining PC1 scores are then rescaled to a 0–100 Impact Index, where values are interpretable only relative to journals in the same subcategory.
+Within each subcategory, journals in the lowest quartile of PC1 scores are removed to avoid distortions from extremely low-impact outlets. Remaining PC1 scores are rescaled to a 0–100 Impact Index, interpretable only within the subcategory.
 
-### 5. K-means Clustering and Tier Assignment
+### 5. Clustering and Tier Assignment
 
-K-means clustering (k = 3) is applied within each subcategory to the Impact Index to identify natural groupings of journals. Clusters are ordered post hoc by their mean Impact Index and mapped to qualitative tiers:
-
-* A: Excellent (highest-impact cluster)
-* B: Preferred (intermediate-impact cluster)
-* C: Acceptable (lowest-impact cluster among retained journals)
-
-Cluster labels are arbitrary; tier assignments always reflect relative impact within subcategories.
+Unsupervised clustering is applied within each subcategory to identify natural groupings in the Impact Index. Clusters are ordered post hoc by mean impact and mapped to the four qualitative tiers: *Elite*, *Excellent*, *Preferred*, and *Acceptable*. Tier labels always reflect relative standing within subcategories, not absolute impact across fields.
 
 ### 6. Diagnostics and Visualization
 
-The workflow generates diagnostic plots to assess tier separation and robustness, including:
+The workflow produces a full set of diagnostic figures, including:
 
-PC1 loading plots by subcategory
-Impact Index histograms by subcategory
-Cluster center plots
-ECDF and density plots by cluster and subcategory
+* PC1 loading plots by subcategory
+* Impact Index histograms by subcategory
+* Cluster center plots
+* ECDF and density plots by cluster and subcategory
 
-These figures are used to evaluate how sharply tiers separate and to document field-specific differences in citation structure.
+These visualizations document the structure of citation distributions and allow inspection of how sharply tiers separate within each field.
 
 ## Outputs
 
@@ -114,9 +123,33 @@ The primary output is:
 
 `AIRESS_Journal_Tiers_by_Subcategory.csv`
 
-A long-format table containing journal titles, subcategory membership, PCA scores, Impact Index values, percentile ranks within subcategories, and tier assignments.
+This long-format table contains journal titles, subcategory membership, PCA scores, Impact Index values, percentile ranks within subcategories, and tier assignments. Journals may appear multiple times if they belong to multiple subcategories.
 
-An interactive, sortable version of this table is also embedded directly in the HTML report.
+An interactive, sortable table is also embedded directly in the HTML report to facilitate exploration and filtering by faculty and administrators.
+
+### Off-list (hors catégorie) Journals
+
+Faculty may propose journals that do not appear in the Scopus-based lists or that do not meet the quantitative criteria used in this framework. Such journals may be designated as off-list (**hors catégorie**) to acknowledge their relevance for particular research areas, languages, regional scholarship, or intellectual traditions not well captured by citation metrics.
+
+Off-list journals are recognized as legitimate publication venues but are not evaluated or tiered using the PCA- and clustering-based system. Their inclusion does not imply equivalence with journals appearing in the Elite–Acceptable tiers and should be interpreted separately in evaluation and reporting contexts.
+
+## Manual Tier Overrides (Faculty Review)
+
+In a small number of cases, faculty identified journals whose scholarly importance is not adequately captured by citation-based metrics alone. These journals were manually reassigned to a different tier within a specific AIRESS subcategory only, based on disciplinary judgment. Such overrides are documented transparently below.
+
+| **AIRESS Subcategory** | **Journal**                                   | **Original Tier** | **Revised Tier** | **Faculty Rationale / Reviewer**                                                     |
+| ---------------------- | --------------------------------------------- | ----------------- | ---------------- | ------------------------------------------------------------------------------------ |
+| Philosophy of Science  | *Philosophy of Science*                       | C: Acceptable     | A: Excellent     | Core flagship journal in philosophy of science (Mathieu Charbonneau)                 |
+| Philosophy of Science  | *History and Philosophy of the Life Sciences* | C: Acceptable     | B: Preferred     | High disciplinary relevance; under-cited relative to influence (Mathieu Charbonneau) |
+| Philosophy of Science  | *HOPOS*                                       | C: Acceptable     | B: Preferred     | Central venue for history & philosophy of science (Mathieu Charbonneau)              |
+| Philosophy of Science  | *Journal of the History of Biology*           | C: Acceptable     | B: Preferred     | Foundational journal in history of biology (Mathieu Charbonneau)                     |
+| Psychology             | *Evolution and Human Behavior*                | C: Acceptable     | B: Preferred     | Flagship journal in evolutionary behavioral science (Zachary Garfield)               |
+
+## Notes
+
+* Overrides apply only within the specified subcategory and do not affect the journal’s tier in other subcategories.
+* All overrides are explicitly documented to preserve transparency and reproducibility.
+* Additional manual adjustments may be proposed by AIRESS faculty and reviewed periodically.
 
 ## Reproducing the Analysis
 
@@ -132,3 +165,5 @@ To regenerate the full report:
 rmarkdown::render("AIRESS_Journal_Analysis.Rmd")
 ```
 All results are fully reproducible given the included Scopus source files.
+
+#
