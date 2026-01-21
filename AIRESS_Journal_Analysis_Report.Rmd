@@ -107,7 +107,7 @@ Figure \@ref(fig:pca-loadings) shows the PC1 loadings for each subcategory. Acro
 
 Higher-order components (PC2 and PC3) account for only small residual variation and do not correspond to interpretable dimensions of journal quality. For this reason, only PC1 is retained for the construction of the Impact Index and for all subsequent analyses.
 
-```{r pca-loadings, fig.cap="PC1 loadings by subcategory. CiteScore, SNIP, and SJR load strongly and in the same direction across all subcategories, indicating a stable latent dimension of journal impact. Higher-order components capture only minor residual variation and are not used in subsequent analyses.", fig.width=12}
+```{r pca-loadings, fig.cap="PC1 loadings by subcategory. CiteScore, SNIP, and SJR load strongly and in the same direction across all subcategories, indicating a stable latent dimension of journal impact. Higher-order components capture only minor residual variation and are not used in subsequent analyses.", fig.width=12, fig.height=7}
 pc1_loadings_by_subcat_plot
 ```
 
@@ -125,7 +125,7 @@ The distribution of the Impact Index, shown in Figure \@ref(fig:index-hist), is 
 
 Rescaling PC1 in this way produces an intuitive and interpretable metric that preserves relative differences in impact while placing journals on a standardized scale suitable for clustering and tier assignment.
 
-```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence.", fig.width=13}
+```{r index-hist, fig.cap="The Impact Index (0–100) is derived from the first principal component (PC1) of CiteScore, SNIP, and SJR. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed, with most journals concentrated at the lower end of the impact spectrum and a long tail of increasingly influential outlets. This pattern reflects the typical unevenness of citation-based metrics, where a small subset of journals capture disproportionately high scholarly visibility and influence.", fig.width=13, fig.height=7}
 index_hist_by_subcat
 ```
 
@@ -137,7 +137,7 @@ K-means clustering was applied separately within each AIRESS subcategory, using 
 
 K-means assigns each journal to a cluster characterized by a centroid representing the mean Impact Index of that group. Because cluster labels are inherently unordered, clusters were subsequently sorted by their mean Impact Index and mapped onto qualitative tiers: the highest-mean cluster was labeled Tier A (Excellent), the intermediate cluster Tier B (Preferred), and the lowest-mean cluster Tier C (Acceptable). This post hoc ordering guarantees that tier labels always reflect relative impact, regardless of the numeric cluster identifiers produced by the algorithm. See \@ref(fig:clusterplot).
 
-```{r clusterplot, fig.cap="K-means cluster centers by subcategory. The figure shows the mean Impact Index for each cluster within disciplinary subcategories. Clusters are ordered post hoc by mean impact, and tier labels (Excellent, Preferred, Acceptable) reflect relative standing rather than the numeric cluster identifiers produced by k-means.", fig.width=12}
+```{r clusterplot, fig.cap="K-means cluster centers by subcategory. The figure shows the mean Impact Index for each cluster within disciplinary subcategories. Clusters are ordered post hoc by mean impact, and tier labels (Excellent, Preferred, Acceptable) reflect relative standing rather than the numeric cluster identifiers produced by k-means.", fig.width=12, fig.height=7}
 cluster_centers_plot_all
 ```
 
@@ -151,7 +151,7 @@ This procedure yields a clear, data-driven tier structure within each subcategor
 
 To evaluate how clearly the k-means clustering separates journals within each subcategory, we examine the empirical cumulative distribution functions (ECDFs) of the Impact Index by cluster, shown in Figure \@ref(fig:ecdf_plot_all). Unlike summary statistics or cluster centers alone, ECDFs display the full distribution of journal impact within each tier, allowing us to assess whether higher-tier clusters consistently dominate lower-tier clusters across the entire impact range. Curves that lie further to the right indicate clusters with systematically higher impact, while the degree of overlap between curves reflects how sharply tiers are differentiated within a given subcategory. Where ECDF curves are well separated, tier boundaries are clear; where they overlap or cross, distinctions between tiers are more gradual, reflecting continuous variation or heterogeneity in citation practices within the field. This visualization therefore provides an important diagnostic check on the robustness and interpretability of the tiering system across disciplinary contexts.
 
-```{r ecdfplot, fig.cap="ECDFs of the Impact Index by cluster and subcategory. Right-shifted curves correspond to higher-impact tiers; overlap indicates continuous variation. Cluster IDs are arbitrary and mapped to tiers post hoc by mean impact.", fig.width=13}
+```{r ecdfplot, fig.cap="ECDFs of the Impact Index by cluster and subcategory. Right-shifted curves correspond to higher-impact tiers; overlap indicates continuous variation. Cluster IDs are arbitrary and mapped to tiers post hoc by mean impact.", fig.width=13, fig.height=7}
 ecdf_plot_all
 ```
 

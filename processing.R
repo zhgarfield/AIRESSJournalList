@@ -218,6 +218,25 @@ subcategory_map <- list(
   )
 )
 
+# Nice names for plotting
+subcategory_labels <- c(
+  Anthropology                   = "Anthropology",
+  AppliedSocialSciences           = "Applied\nSocial Sciences",
+  ComputationalAndMethods         = "Computational\n& Methods",
+  DecisionSciences                = "Decision Sciences",
+  Demography                     = "Demography",
+  Economics                      = "Economics",
+  GeographyPlanningAndDevelopment = "Geography,\nPlanning & Development",
+  History                        = "History",
+  Law                            = "Law",
+  Multidisciplinary              = "Multidisciplinary",
+  Other                          = "Other",
+  PhilosophyOfScience            = "Philosophy\nof Science",
+  PoliticalScienceAndIR          = "Political Science\n& International Relations",
+  Psychology                     = "Psychology",
+  Sociology                      = "Sociology"
+)
+
 
 # Create 0/1 membership columns for each subcategory (no changes to existing subject-area columns)
 for (sc in names(subcategory_map)) {
@@ -225,25 +244,6 @@ for (sc in names(subcategory_map)) {
   areas_present <- intersect(areas, names(df_wide))
   df_wide[[sc]] <- if (length(areas_present) == 0) 0L else as.integer(rowSums(df_wide[, areas_present, drop = FALSE], na.rm = TRUE) > 0)
 }
-
-# Subcategory workflow: PCA + Impact Index + K-means WITHIN each subcategory ----
-
-# Map Scopus subject areas (from filenames) to AIRESS subcategories
-# subcategory_map <- list(
-#   DecisionSciences = c("DecisionSciencesMiscellaneous", "GeneralDecisionSciences"),
-#   Psychology = c(
-#     "PsychologyMiscellaneous", "GeneralPsychology", "AppliedPsychology",
-#     "ExperimentalandCognitivePsychology", "SocialPsychology",
-#     "DevelopmentalandEducationalPsychology"
-#   ),
-#   Anthropology = c("Anthropology", "CulturalStudies"),
-#   Demography = c("Demography"),
-#   Sociology = c("SociologyandPoliticalScience"),
-#   PhilosophyOfScience = c("HistoryandPhilosophyofScience"),
-#   AppliedSocialSciences = c("HealthSocialScience"),
-#   Multidisciplinary = c("Multidisciplinary"),
-#   Other = c("SocialSciencesMiscellaneous", "GeneralSocialSciences", "GeneralAgricultureandBiologicalSciences", "GeneralMedicine")
-# )
 
 # Create 0/1 membership columns for each subcategory (based on subject-area columns already in df_wide)
 for (sc in names(subcategory_map)) {
@@ -372,20 +372,25 @@ loadings_all <- purrr::map_dfr(
 
 pc1_loadings_by_subcat_plot <- ggplot(loadings_all, aes(x = metric, y = loading)) +
   geom_col() +
-  facet_wrap(~ subcategory, scales = "free_y") +
+  facet_wrap(
+    ~ subcategory,
+    scales = "free_y",
+    labeller = labeller(subcategory = subcategory_labels)
+  ) +
   coord_flip() +
   labs(
-    title = "PC1 Loadings by Subcategory (PCA within subcategory)",
+    title = "PC1 Loadings by Subcategory (PCA within Subcategory)",
     x = NULL,
-    y = "PC1 loading (oriented so higher metrics → higher PC1)"
+    y = "PC1 loading (higher values indicate stronger contribution to impact)"
   ) +
   theme_minimal(base_size = 14) +
   theme(
-    strip.text = element_text(face = "bold"),
+    strip.text = element_text(face = "bold", size = 12),
     axis.text.y = element_text(size = 12)
   )
 
 pc1_loadings_by_subcat_plot
+
 
 
 # K-means descriptive plots by subcategory (all in one plot set) ------------
@@ -412,6 +417,11 @@ cluster_centers_plot_all <- ggplot(cluster_centers_by_subcat,
     caption = "Note: K-means cluster labels are arbitrary. Clusters are ordered post hoc by\nmean impact within each subcategory, and tier labels (Excellent, Preferred,\nAcceptable) are assigned accordingly."
   ) +
   theme_minimal(base_size = 13) +
+  facet_wrap(
+    ~ subcategory,
+    scales = "free_x",
+    labeller = labeller(subcategory = subcategory_labels)
+  ) +
   theme(
     strip.text = element_text(face = "bold"),
     axis.text.x = element_text(size = 11),
@@ -430,6 +440,11 @@ ecdf_plot_all <- ggplot(df_km, aes(x = impact_index, color = factor(cluster_raw)
     x = "Impact Index",
     y = "Cumulative Proportion",
     color = "Cluster"
+  ) +
+  facet_wrap(
+    ~ subcategory,
+    scales = "free_x",
+    labeller = labeller(subcategory = subcategory_labels)
   ) +
   theme_minimal(base_size = 13) +
   theme(
@@ -450,6 +465,11 @@ density_plot_all <- ggplot(df_km, aes(x = impact_index, fill = factor(cluster_ra
     x = "Impact Index",
     y = "Density",
     fill = "Cluster"
+  ) +
+  facet_wrap(
+    ~ subcategory,
+    scales = "free_x",
+    labeller = labeller(subcategory = subcategory_labels)
   ) +
   theme_minimal(base_size = 13) +
   theme(
@@ -507,7 +527,11 @@ index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
     fill = "steelblue",
     alpha = 0.8
   ) +
-  facet_wrap(~ subcategory, scales = "free") +  # <-- key change
+  facet_wrap(
+    ~ subcategory,
+    scales = "free_y",  # <-- floating Y axis per facet
+    labeller = labeller(subcategory = subcategory_labels)
+  ) +
   labs(
     title = "Distribution of Impact Index by Subcategory",
     subtitle = "Impact Index (0–100) computed within each disciplinary subcategory",
@@ -525,6 +549,7 @@ index_hist_by_subcat <- ggplot(df_final, aes(x = impact_index)) +
   )
 
 index_hist_by_subcat
+
 
 
 # Faculty proposed alterations --------------------------------------------
