@@ -139,9 +139,10 @@ Overrides are compiled from three sources: hardcoded entries from named reviewer
 | Philosophy of Science  | *HOPOS*                                       | C: Preferred     | Central venue for history & philosophy of science (Mathieu Charbonneau)              |
 | Philosophy of Science  | *Journal of the History of Biology*           | C: Preferred     | Foundational journal in history of biology (Mathieu Charbonneau)                     |
 | Psychology             | *Evolution and Human Behavior*                | C: Preferred     | Flagship journal in evolutionary behavioral science (Zachary Garfield)               |
-| Political Science & IR | *(multiple entries)*                          | *(see file)*     | Amir — see `files/revisions/AIRESS_Journal_Tiers_by_Subcategory_2026-02-09_AMIR.xlsx` |
-| Economics              | *(multiple entries)*                          | *(see file)*     | Mehdi — see `files/revisions/Econ_list_0_MEHDI.xlsx`                                |
-| Decision Sciences      | *Management Science*                          | B: Excellent     | Mehdi                                                                                |
+| Multidisciplinary      | *Nature Communications*                       | B: Excellent     | Highly competitive interdisciplinary journal crossing many fields (Zachary Garfield)               |
+| Political Science & IR | *(multiple entries)*                          | *(see file)*     | Amir Abul Red — see `files/revisions/AIRESS_Journal_Tiers_by_Subcategory_2026-02-09_AMIR.xlsx` |
+| Economics              | *(multiple entries)*                          | *(see file)*     | Mehdi Bartal — see `files/revisions/Econ_list_0_MEHDI.xlsx`                                |
+| Decision Sciences      | *Management Science*                          | B: Excellent     | Mehdi Bartal                                                                                |
 
 ## Notes
 
