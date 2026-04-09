@@ -1,6 +1,6 @@
 ---
 title: "AIRESS Research Journal Analysis"
-author: "Pr. Zachary Garfield"
+author: "AIRESS Journal List Team"
 date: "`r Sys.Date()`"
 output:
   bookdown::html_document2:
@@ -24,8 +24,9 @@ Key features of the analysis include:
 
 - Compilation of **Scopus Q1–Q2 journal lists (2024)** across all major research areas in which AIRESS faculty publish.
 - Organization of Scopus subject categories into **disciplinary AIRESS subcategories**, designed to reflect research practice rather than formal program boundaries.
-- Construction of a **within-subcategory impact metric** using SJR (SCImago Journal Rank) as the sole bibliometric indicator. SJR was selected because it is a prestige-weighted citation measure that accounts for the source of citations, making it well-suited for comparisons within disciplinary subcategories.
-- Removal of the **lowest-impact quartile within each subcategory**. The source data already consist of Q1–Q2 journals, so the bottom 25% of any subcategory represents the weakest outlets within an already-filtered pool — venues that AIRESS faculty and students are unlikely to target. Trimming this lower tail also improves scale resolution by preventing the dense low end of the SJR distribution from compressing the range where meaningful differences in journal quality actually lie.
+- The key distinction is that SJR is **field-normalized** through its prestige-weighting — a citation from a high-impact journal in one field counts more than a raw citation from anywhere — which makes it less sensitive to the sheer volume of citations circulating in a field. That's why it's preferable to CiteScore or SNIP for a multi-disciplinary list where citation densities vary enormously across subcategories.
+- Construction of a **within-subcategory impact metric using SJR (SCImago Journal Rank)**. SJR was selected over raw citation counts or volume-based metrics because it weights each citation by the prestige of the citing journal, making it less sensitive to differences in citation density across fields. A journal in a low-citation discipline like history or philosophy is not penalized simply because its field circulates fewer citations overall — what matters is the influence of the journals citing it. This makes SJR the most appropriate single metric for a multi-disciplinary framework in which journals are always evaluated within, not across, subcategories.
+- Removal of the **lowest-impact quartile within each subcategory**. The source data already consist of Q1–Q2 journals, so the bottom 25% of any subcategory represents the weakest outlets within an already-filtered pool. Trimming this lower tail also improves scale resolution by preventing the dense low end of the SJR distribution from compressing the range where meaningful differences in journal quality actually lie.
 - Rescaling of SJR scores to a **0–100 Impact Index**, computed separately within each subcategory.
 - Application of **k-means clustering (k = 4)** within each subcategory to identify natural journal tiers:
   - **A: Elite**
@@ -148,9 +149,9 @@ tier_plot
 ```
 
 
-# Next Steps
+# List Updating
 
-AIRESS faculty can now propose manual updates to this list, either by suggesting the addition or removal of journals or by proposing alterations to a journal's tier assignment.
+AIRESS faculty can propose manual updates to this list, either by suggesting the addition or removal of journals or by proposing alterations to a journal's tier assignment. The current list reflects one round of suggested edits from AIRESS faculty.
 
 Faculty may also propose the inclusion of journals that do not appear in the current Scopus-based list or that do not meet the quantitative criteria used in this analysis. Such journals may be designated as off-list (or *hors catégorie*), reflecting their relevance for particular research areas, regional contexts, languages, or scholarly traditions not well captured by standard bibliometric indicators. Off-list journals are acknowledged as legitimate and potentially valuable publication venues; however, they are not evaluated or tiered using the SJR-based clustering framework described in this report. As a result, their inclusion does not imply equivalence with journals appearing in the A–D tiers, and they should be interpreted separately in evaluation, mentoring, and reporting contexts. This provision is intended to preserve disciplinary flexibility and intellectual diversity while maintaining transparency about which journals are evaluated using standardized quantitative criteria and which are recognized through faculty judgment.
 

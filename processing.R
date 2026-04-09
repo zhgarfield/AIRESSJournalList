@@ -450,7 +450,8 @@ hardcoded_overrides <- tibble::tribble(
   "PhilosophyOfScience", "History and Philosophy of the Life Sciences",  "C: Preferred", # Mathieu Charbonneau
   "PhilosophyOfScience", "HOPOS",                                        "C: Preferred", # Mathieu Charbonneau
   "PhilosophyOfScience", "Journal of the History of Biology",            "C: Preferred", # Mathieu Charbonneau
-  "Psychology",          "Evolution and Human Behavior",                 "C: Preferred"  # Zachary Garfield
+  "Psychology",          "Evolution and Human Behavior",                 "C: Preferred", # Zachary Garfield
+  "Multidisciplinary",   "Nature Communications",                        "B: Excellent"  # Zachary Garfield
 )
 
 # --- 2. AMIR revisions ----------------------------------------------------
