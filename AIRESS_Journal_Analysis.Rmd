@@ -1,0 +1,192 @@
+---
+title: "AIRESS Research Journal Analysis"
+author: "Pr. Zachary Garfield"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source("processingV2.R")
+library(DT)
+```
+
+# Executive Summary
+
+This report presents a comprehensive, data-driven framework for evaluating academic journals across the full range of research domains represented at AIRESS (UM6P), including behavioral science, political science, economics, law, geography and development, computational methods, and global affairs.
+
+Key features of the analysis include:
+
+- Compilation of **Scopus Q1–Q2 journal lists (2024)** across all major research areas in which AIRESS faculty publish.
+- Organization of Scopus subject categories into **disciplinary AIRESS subcategories**, designed to reflect research practice rather than formal program boundaries.
+- Construction of a **within-subcategory impact metric** using SJR (SCImago Journal Rank) as the sole bibliometric indicator. SJR was selected because it is a prestige-weighted citation measure that accounts for the source of citations, making it well-suited for comparisons within disciplinary subcategories.
+- Removal of the **lowest-impact quartile within each subcategory** to improve interpretability and focus on relevant publication venues.
+- Rescaling of SJR scores to a **0–100 Impact Index**, computed separately within each subcategory.
+- Application of **k-means clustering (k = 4)** within each subcategory to identify natural journal tiers:
+  - **A: Elite**
+  - **B: Excellent**
+  - **C: Preferred**
+  - **D: Acceptable**
+- Generation of diagnostic visualizations (distributions, ECDFs) to assess the stability and clarity of tier separation.
+- Production of a **sortable, searchable interactive table** allowing faculty and administrators to explore journal rankings by subcategory.
+
+The resulting framework provides a transparent, reproducible basis for publication strategy, mentoring, and evaluation across all AIRESS research domains, while remaining adaptable as citation practices evolve and new journals emerge.
+
+
+# Introduction
+
+The goal of this project is to build a transparent, evidence-based classification of academic journals relevant to the full range of interdisciplinary research domains represented at AIRESS and UM6P, including behavioral science, political science, economics, law, geography and development, computational methods, and global affairs. Faculty and students routinely make decisions about where to publish, which journals to prioritize, and how to interpret publication records. Yet journal quality is uneven across fields, citation practices differ substantially by discipline, and intuitive judgments are often shaped by disciplinary silos. This report therefore develops a principled, reproducible system for evaluating journals within their appropriate disciplinary contexts, while remaining comparable across the full scope of research at AIRESS.
+
+We begin by assembling and cleaning a curated set of **Scopus journal lists** across subject areas aligned with the full scope of AIRESS research, including psychology, anthropology, decision sciences, economics, political science and international relations, law, geography and development, computational and methodological fields, and related domains. These data are harmonized into a single dataset, with journals allowed to appear in multiple subject areas to reflect their interdisciplinary positioning.
+
+Rather than imposing a single, global ranking across all fields, we adopt a within-subcategory evaluation strategy (see Table 1). Journals are grouped into a small number of disciplinary subcategories (determined through consultation with AIRESS faculty and research leadership), and all subsequent analyses—impact estimation, filtering, and tiering—are conducted within each subcategory. This approach respects differences in citation density, publication norms, and scale across disciplines, while still producing a coherent and transparent evaluation framework.
+
+To assess journal impact, we use **SJR (SCImago Journal Rank)** as the sole bibliometric indicator. SJR is a prestige-weighted metric that values citations differently depending on the influence of the citing journal, analogous to a citation-based PageRank. Unlike raw citation counts, SJR is less sensitive to differences in citation volume across fields, making it appropriate for a multi-disciplinary analysis in which journals are evaluated within—rather than across—subcategories. Using a single, well-established metric also improves interpretability and simplifies the audit trail for administrators and faculty evaluators.
+
+To improve interpretability and avoid distortions from extremely low-impact or marginal journals, we remove the bottom 25% of titles within each subcategory based on SJR. These journals contribute little to meaningful differentiation among commonly targeted outlets and would otherwise compress the scale, making it harder to distinguish differences among mid- and high-tier journals. Filtering at this stage ensures that the resulting impact index and tiering system reflect journals most relevant to the research and teaching missions of AIRESS.
+
+Finally, we rescale SJR scores to an intuitive 0–100 Impact Index and implement a tiering procedure using k-means clustering within each subcategory. Journals are classified into four categories—A (Elite), B (Excellent), C (Preferred), and D (Acceptable)—based on natural groupings in the data. The result is a clear, defensible framework for evaluating journals across AIRESS disciplines while preserving sensitivity to disciplinary context.
+
+
+# Data Sources
+
+Scopus is the most comprehensive and widely used bibliometric database in the social and human sciences. To capture the breadth of scholarship represented at AIRESS, we assembled a curated set of Scopus subject categories most relevant to the interdisciplinary research portfolio of AIRESS, spanning the social sciences, behavioral sciences, economics, governance, law, development studies, and computational methods. In total, `r length(unique(data$subject_area))` Scopus subject areas were included.
+
+Because Scopus subject categories vary widely in scope and often overlap, individual subject areas were grouped into a smaller number of analytically meaningful AIRESS subcategories. This step serves two purposes. First, it reflects how research is organized in practice at AIRESS, where scholarship spans multiple adjacent Scopus classifications. Second, it provides an appropriate unit for within-discipline evaluation, ensuring that journals are compared against relevant peers rather than across fields with fundamentally different citation norms.
+
+The mapping between Scopus subject categories and AIRESS subcategories used in this analysis is shown in Table 1.
+
+Table 1. Mapping between Scopus subject categories and AIRESS subcategories used in this analysis.
+
+| **AIRESS Subcategory**                 | **Scopus Subject Categories Included**                                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Anthropology**                       | Anthropology; Cultural Studies                                                                                                                                        |
+| **Applied Social Sciences**            | Health (Social Science); Development                                                                                                                                  |
+| **Computational & Methods**            | Artificial Intelligence; Modeling and Simulation; Statistics and Probability; Statistics, Probability and Uncertainty                                                 |
+| **Decision Sciences**                  | Decision Sciences (Miscellaneous); General Decision Sciences; Management Science and Operations Research                                                              |
+| **Demography**                         | Demography                                                                                                                                                            |
+| **Economics**                          | Economics and Econometrics; General Economics, Econometrics and Finance; Economics, Econometrics and Finance (Miscellaneous)                                          |
+| **General Social Science**             | Social Sciences (Miscellaneous); General Social Sciences                                                                                                              |
+| **Geography, Planning & Development**  | Geography, Planning and Development; Transportation                                                                                                                   |
+| **History**                            | History                                                                                                                                                               |
+| **Law**                                | Law; Management, Monitoring, Policy and Law                                                                                                                           |
+| **Multidisciplinary**                  | Multidisciplinary                                                                                                                                                     |
+| **Philosophy of Science**              | History and Philosophy of Science                                                                                                                                     |
+| **Political Science and IR**           | Political Science and International Relations; Sociology and Political Science; Public Administration; Religious Studies                                               |
+| **Psychology**                         | Psychology (Miscellaneous); General Psychology; Applied Psychology; Experimental and Cognitive Psychology; Social Psychology; Developmental and Educational Psychology |
+| **Sociology**                          | Sociology and Political Science                                                                                                                                       |
+| **Other**                              | General Agriculture and Biological Sciences; General Medicine; Communication; Philosophy                                                                              |
+
+For each Scopus subject category, a Source List (Excel format) was downloaded containing all indexed journals along with their bibliometric indicators, including CiteScore, SNIP (Source Normalized Impact per Paper), SJR (SCImago Journal Rank), publisher information, and associated metadata. Only journal sources were included, and only those ranked in the first or second Scopus quartile (Q1–Q2), in order to focus the analysis on established and widely recognized outlets.
+
+Two journals—*MMWR Surveillance Summaries* and *MMWR Recommendations and Reports*—were removed at the outset. Although highly cited, these outlets function primarily as epidemiological policy and surveillance reports and fall outside the scope of AIRESS publishing priorities. Their inclusion would disproportionately influence the SJR distribution and distort subsequent analyses.
+
+SJR values were coerced to numeric format, and journals with missing SJR were excluded. All data correspond to the 2024 Scopus Source Lists.
+
+
+# Data Import and Preparation
+
+Each Scopus subject file was imported, assigned a subject-area label extracted from the filename, and merged into a single dataset. Because many journals are indexed under multiple Scopus subject categories, duplicate journal titles were consolidated while preserving all subject-area memberships through a binary indicator matrix. This ensures that interdisciplinary journals retain their full classification profiles rather than being forced into a single category.
+
+After cleaning and consolidation, the dataset contains `r dim(journal_metadata)[1]` unique journals across all selected Scopus subject areas. Journals may later appear multiple times in the analysis when evaluated within different AIRESS subcategories, reflecting their interdisciplinary scope.
+
+SJR was coerced to numeric format and journals with missing SJR values were excluded, yielding a complete and consistent basis for impact index construction and clustering.
+
+
+# Construction of the Impact Index
+
+Journal impact is assessed using **SJR (SCImago Journal Rank)** as the sole metric. SJR weights each citation by the prestige of the citing journal, producing a measure of influence that is less sensitive to raw publication volume than simple citation counts. Because SJR is already calibrated to reflect citation prestige rather than field size, it is well suited to within-subcategory comparisons in which journals are evaluated against disciplinary peers.
+
+Within each AIRESS subcategory, journals in the bottom 25% of the SJR distribution are removed. This filtering step serves two purposes. First, it removes very low-impact journals that form a distinct lower tail and contribute little to meaningful differentiation among commonly targeted outlets. Second, it prevents extreme low values from compressing the scale, which would reduce resolution among mid- and high-impact journals.
+
+After filtering, SJR scores are rescaled **within each subcategory** to a 0–100 Impact Index. A value of 0 corresponds to the lowest-impact retained journals in that subcategory, while 100 corresponds to the highest-impact journals in that same disciplinary context. Intermediate values reflect proportional standing along the SJR dimension. As a result, Impact Index values are directly interpretable *within* subcategories but should not be compared numerically *across* subcategories.
+
+The distribution of the Impact Index, shown in Figure \@ref(fig:index-hist), is strongly right-skewed (mean = `r round(mean(df_final$impact_index), 2)`, SD = `r round(sd(df_final$impact_index), 2)`). Most journals cluster toward the lower end of the index, while a small number extend into the high-impact range. This asymmetry reflects a well-established feature of citation-based metrics, in which scholarly influence is concentrated among a limited set of journals rather than evenly distributed across outlets.
+
+```{r index-hist, fig.cap="The Impact Index (0–100) is derived from SJR, rescaled within each AIRESS subcategory. Y-axes are scaled independently within each subcategory to emphasize the internal structure of impact distributions rather than differences in the number of journals across fields. The distribution is highly right-skewed within each subcategory, reflecting the typical concentration of citation-based influence among a small number of high-impact outlets.", fig.width=13, fig.height=7}
+index_hist_by_subcat
+```
+
+
+# K-Means Clustering and Construction of the Tier System
+
+After filtering and rescaling SJR to a standardized 0–100 Impact Index, the next step was to translate this continuous measure into a practical, categorical tiering system usable by faculty, students, and administrators. Rather than imposing arbitrary numeric thresholds, our goal was to identify natural groupings in journal impact within each disciplinary context. For this reason, we applied k-means clustering, a widely used unsupervised learning method that partitions observations into groups based on similarity.
+
+K-means clustering was applied separately within each AIRESS subcategory, using the Impact Index as the input variable and specifying four clusters. Conducting clustering within subcategories ensures that journals are grouped relative to appropriate disciplinary peers, rather than being compared across fields with very different citation norms and publication scales.
+
+Because cluster labels are inherently unordered, clusters were subsequently sorted by their mean Impact Index and mapped onto qualitative tiers: the highest-mean cluster was labeled Tier A (Elite), followed by Tier B (Excellent), Tier C (Preferred), and Tier D (Acceptable). This post hoc ordering guarantees that tier labels always reflect relative impact, regardless of the numeric cluster identifiers produced by the algorithm. See Figure \@ref(fig:clusterplot).
+
+```{r clusterplot, fig.cap="K-means cluster centers by subcategory. The figure shows the mean Impact Index for each cluster within each disciplinary subcategory. Clusters are ordered post hoc by mean impact, and tier labels (A: Elite, B: Excellent, C: Preferred, D: Acceptable) reflect relative standing within each subcategory rather than the numeric cluster identifiers produced by k-means.", fig.width=12, fig.height=7}
+cluster_centers_plot_all
+```
+
+This procedure yields a clear, data-driven tier structure within each subcategory:
+
+* **Tier A (Elite):** The highest-impact journals within a given disciplinary context. These outlets typically exhibit strong citation performance, broad visibility, and are widely recognized as leading journals in their fields.
+
+* **Tier B (Excellent):** Journals with high and reliable impact profiles. These outlets are well regarded within their disciplines and represent strong publication venues for faculty and graduate students.
+
+* **Tier C (Preferred):** Journals with solid impact. These represent competitive and respected choices within the field, suitable for a wide range of research contributions.
+
+* **Tier D (Acceptable):** Journals with modest but legitimate impact. These may be appropriate venues for specialized topics, methodological contributions, or early-stage researchers, while still meeting basic standards of scholarly quality.
+
+To evaluate how clearly the k-means clustering separates journals within each subcategory, we examine the empirical cumulative distribution functions (ECDFs) of the Impact Index by cluster, shown in Figure \@ref(fig:ecdfplot). Curves that lie further to the right indicate clusters with systematically higher impact, while the degree of overlap between curves reflects how sharply tiers are differentiated within a given subcategory. This visualization provides an important diagnostic check on the robustness and interpretability of the tiering system across disciplinary contexts.
+
+```{r ecdfplot, fig.cap="ECDFs of the Impact Index by cluster and subcategory. Right-shifted curves correspond to higher-impact tiers; overlap indicates continuous variation. Cluster IDs are arbitrary and mapped to tiers post hoc by mean impact within each subcategory.", fig.width=13, fig.height=7}
+ecdf_plot_all
+```
+
+As shown in Figure \@ref(fig:tierplot), the resulting tier distributions exhibit clear stratification of journal impact. Most journals fall toward the lower end of the Impact Index, with progressively fewer occupying the mid- and high-impact tiers. This pattern reflects the well-known concentration of scholarly influence among a limited subset of journals.
+
+```{r tierplot, fig.cap="Impact Index distributions by tier (A: Elite, B: Excellent, C: Preferred, D: Acceptable) across all subcategories. Tiers are assigned by k-means clustering on the within-subcategory SJR-based Impact Index (0–100). The distribution shows that most journals fall in the lower tiers, with progressively fewer occupying the higher-impact ranges, reflecting the natural stratification of scholarly influence."}
+tier_plot
+```
+
+
+# Next Steps
+
+AIRESS faculty can now propose manual updates to this list, either by suggesting the addition or removal of journals or by proposing alterations to a journal's tier assignment.
+
+Faculty may also propose the inclusion of journals that do not appear in the current Scopus-based list or that do not meet the quantitative criteria used in this analysis. Such journals may be designated as off-list (or *hors catégorie*), reflecting their relevance for particular research areas, regional contexts, languages, or scholarly traditions not well captured by standard bibliometric indicators. Off-list journals are acknowledged as legitimate and potentially valuable publication venues; however, they are not evaluated or tiered using the SJR-based clustering framework described in this report. As a result, their inclusion does not imply equivalence with journals appearing in the A–D tiers, and they should be interpreted separately in evaluation, mentoring, and reporting contexts. This provision is intended to preserve disciplinary flexibility and intellectual diversity while maintaining transparency about which journals are evaluated using standardized quantitative criteria and which are recognized through faculty judgment.
+
+
+# Conclusion
+
+By using a within-subcategory SJR-based Impact Index combined with k-means clustering, this analysis produces a tiering system that reflects real structure in the bibliometric data rather than subjective impressions or arbitrary thresholds. Evaluating journals relative to their disciplinary peers ensures that differences in citation density and publication norms across fields do not distort assessments of journal quality.
+
+The resulting framework is reproducible, principled, and transparent. It provides a flexible tool for guiding publication strategy, mentoring, and evaluation across the full range of research domains represented at AIRESS, while remaining adaptable over time. As Scopus metrics evolve and new journals emerge, the system can be readily updated using the same workflow, ensuring continued relevance and methodological consistency.
+
+
+# Appendix
+
+## Interactive Journal Table
+
+```{r plot}
+DT::datatable(
+  df_final %>%
+    select(
+      subcategory,
+      `Source title`,
+      tier,
+      SJR,
+      impact_index,
+      percentile_in_subcategory,
+      Publisher
+    ) %>%
+    arrange(subcategory, desc(impact_index)),
+  extensions = c("Buttons"),
+  options = list(
+    pageLength = 25,
+    autoWidth = TRUE,
+    dom = "Bfrtip",
+    buttons = c("copy", "csv", "excel"),
+    order = list(list(0, "asc"), list(3, "desc"))
+  ),
+  rownames = FALSE
+)
+```
