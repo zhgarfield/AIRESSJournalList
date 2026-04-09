@@ -94,7 +94,7 @@ Scopus subject areas are grouped into a set of AIRESS subcategories designed to 
 
 ### 3. Impact Index Construction
 
-Within each subcategory, journals in the bottom 25% of the SJR distribution are removed to avoid distortions from extremely low-impact outlets. Remaining SJR scores are rescaled to a 0–100 Impact Index, interpretable only within the subcategory. SJR was chosen as the sole metric because it is a prestige-weighted measure that values citations by the influence of the citing journal, making it well-suited for within-discipline comparisons where absolute citation volumes differ substantially across fields.
+Within each subcategory, journals in the bottom 25% of the SJR distribution are removed before constructing the Impact Index. Four considerations motivate this step. First, the source data are already restricted to Q1–Q2 journals, so the bottom quartile of any subcategory consists of the weakest outlets within an already-filtered pool — venues unlikely to be primary publication targets for AIRESS faculty or students. Second, SJR distributions remain heavily right-skewed even within Q1–Q2 lists; retaining the lower tail compresses the 0–100 rescaling into a range where meaningful differences in journal quality are difficult to distinguish. Third, k-means is sensitive to extreme low-end values, which tend to form an isolated cluster and effectively waste one tier on marginal outlets. Fourth, retaining these journals pulls cluster centers downward and weakens tier separation in the upper portion of the distribution. Remaining SJR scores are rescaled to a 0–100 Impact Index, interpretable only within the subcategory. SJR was chosen as the sole metric because it is a prestige-weighted measure that values citations by the influence of the citing journal, making it well-suited for within-discipline comparisons where absolute citation volumes differ substantially across fields.
 
 ### 4. Clustering and Tier Assignment
 
@@ -139,9 +139,9 @@ Overrides are compiled from three sources: hardcoded entries from named reviewer
 | Philosophy of Science  | *HOPOS*                                       | C: Preferred     | Central venue for history & philosophy of science (Mathieu Charbonneau)              |
 | Philosophy of Science  | *Journal of the History of Biology*           | C: Preferred     | Foundational journal in history of biology (Mathieu Charbonneau)                     |
 | Psychology             | *Evolution and Human Behavior*                | C: Preferred     | Flagship journal in evolutionary behavioral science (Zachary Garfield)               |
-| Political Science & IR | *(multiple entries)*                          | *(see file)*     | Amir Abul Reda — see `files/revisions/AIRESS_Journal_Tiers_by_Subcategory_2026-02-09_AMIR.xlsx` |
-| Economics              | *(multiple entries)*                          | *(see file)*     | Mehdi Bartel — see `files/revisions/Econ_list_0_MEHDI.xlsx`                                |
-| Decision Sciences      | *Management Science*                          | B: Excellent     | Mehdi Bartel                                                                               |
+| Political Science & IR | *(multiple entries)*                          | *(see file)*     | Amir — see `files/revisions/AIRESS_Journal_Tiers_by_Subcategory_2026-02-09_AMIR.xlsx` |
+| Economics              | *(multiple entries)*                          | *(see file)*     | Mehdi — see `files/revisions/Econ_list_0_MEHDI.xlsx`                                |
+| Decision Sciences      | *Management Science*                          | B: Excellent     | Mehdi                                                                                |
 
 ## Notes
 
